@@ -1,0 +1,386 @@
+import { useState, useEffect } from 'react';
+import { useAuth } from '../hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
+import Header from '../components/Header.tsx';
+import { getGroups, createGroup, type Group } from '../services/groupServices';
+
+// ── tiny icon helpers ────────────────────────────────────────────────────────
+const Icon = ({ path, className = 'size-5' }: { path: string; className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+    strokeWidth={1.5} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d={path} />
+  </svg>
+);
+
+const ICONS = {
+  groups: 'M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z',
+  balance: 'M12 3v17.25m0 0c-1.472 0-2.882.265-4.185.75M12 20.25c1.472 0 2.882.265 4.185.75M18.75 4.97A48.416 48.416 0 0 0 12 4.5c-2.291 0-4.545.16-6.75.47m13.5 0c1.01.143 2.01.317 3 .52m-3-.52 2.62 10.726c.122.499-.106 1.028-.589 1.202a5.988 5.988 0 0 1-2.031.352 5.988 5.988 0 0 1-2.031-.352c-.483-.174-.711-.703-.59-1.202L18.75 4.971Zm-16.5.52c.99-.203 1.99-.377 3-.52m0 0 2.62 10.726c.122.499-.106 1.028-.589 1.202a5.989 5.989 0 0 1-2.031.352 5.989 5.989 0 0 1-2.031-.352c-.483-.174-.711-.703-.59-1.202L5.25 4.971Z',
+  add: 'M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
+  settle: 'M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5',
+  activity: 'M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z',
+  chevron: 'M8.25 4.5l7.5 7.5-7.5 7.5',
+  check: 'M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
+  close: 'M6 18 18 6M6 6l12 12',
+  empty: 'M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z',
+};
+
+const GROUP_COLORS = [
+  'from-violet-500 to-purple-600',
+  'from-indigo-500 to-blue-600',
+  'from-purple-500 to-fuchsia-600',
+  'from-rose-500 to-pink-600',
+  'from-amber-500 to-orange-600',
+  'from-emerald-500 to-teal-600',
+];
+
+// ── mock data (balances & activity — kept until those features are wired) ────
+const MOCK_BALANCES = [
+  { id: 1, name: 'Sara K.', amount: 84.50, dir: 'owed_to_me' },
+  { id: 2, name: 'James P.', amount: 120.00, dir: 'i_owe' },
+  { id: 3, name: 'Liu W.', amount: 35.25, dir: 'owed_to_me' },
+  { id: 4, name: 'Amara T.', amount: 60.00, dir: 'i_owe' },
+];
+
+const MOCK_ACTIVITY = [
+  { id: 1, desc: 'Hotel booking — Barcelona', group: 'Barcelona Trip', amount: 420.00, date: 'Mar 7', you: true },
+  { id: 2, desc: 'Groceries', group: 'Apartment Shared', amount: 67.30, date: 'Mar 5', you: false, who: 'Sara K.' },
+  { id: 3, desc: 'Team lunch', group: 'Office Lunch Pool', amount: 88.40, date: 'Mar 4', you: true },
+  { id: 4, desc: 'Cab to airport', group: 'Barcelona Trip', amount: 34.00, date: 'Mar 3', you: false, who: 'James P.' },
+];
+
+// ── stat card ────────────────────────────────────────────────────────────────
+const StatCard = ({ label, value, sub, icon, delay = '0ms' }: {
+  label: string; value: string; sub: string; icon: string; delay?: string;
+}) => (
+  <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-200"
+    style={{ animation: `fadeUp 0.55s cubic-bezier(0.16,1,0.3,1) ${delay} both` }}>
+    <div className="flex items-start justify-between mb-4">
+      <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest">{label}</span>
+      <span className="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center text-violet-500">
+        <Icon path={icon} className="size-4" />
+      </span>
+    </div>
+    <p className="text-2xl font-extrabold text-gray-900 tracking-tight">{value}</p>
+    <p className="text-xs text-gray-400 mt-1">{sub}</p>
+  </div>
+);
+
+// ── Create Group Modal ───────────────────────────────────────────────────────
+const CreateGroupModal = ({ open, onClose, onCreated }: {
+  open: boolean;
+  onClose: () => void;
+  onCreated: (group: Group) => void;
+}) => {
+  const [name, setName] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  if (!open) return null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    if (!name.trim()) { setError('Group name is required.'); return; }
+
+    setLoading(true);
+    try {
+      const group = await createGroup(name.trim());
+      onCreated(group);
+      setName('');
+      onClose();
+    } catch (err: any) {
+      setError(err?.response?.data?.error || err?.response?.data?.message || 'Failed to create group.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+
+      {/* Modal */}
+      <div className="relative w-full max-w-md mx-4 bg-white rounded-2xl shadow-2xl border border-gray-100 p-6"
+        style={{ animation: 'fadeUp 0.35s cubic-bezier(0.16,1,0.3,1) both' }}>
+
+        {/* Close button */}
+        <button onClick={onClose}
+          className="absolute top-4 right-4 w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer">
+          <Icon path={ICONS.close} className="size-4" />
+        </button>
+
+        <h3 className="text-lg font-extrabold text-gray-900 mb-1">Create New Group</h3>
+        <p className="text-sm text-gray-400 mb-5">Start splitting expenses with your team.</p>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="group-name" className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
+              Group Name
+            </label>
+            <input
+              id="group-name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. Barcelona Trip"
+              autoFocus
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
+            />
+          </div>
+
+          {error && (
+            <p className="text-xs text-rose-500 font-medium">{error}</p>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-sm font-bold shadow-lg shadow-violet-500/30 hover:opacity-90 disabled:opacity-60 transition-opacity cursor-pointer"
+          >
+            {loading ? 'Creating…' : 'Create Group'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+// ── main dashboard ────────────────────────────────────────────────────────────
+const Dashboard = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<'overview' | 'groups' | 'activity'>('overview');
+
+  // ── Groups state ──
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [groupsLoading, setGroupsLoading] = useState(true);
+  const [groupsError, setGroupsError] = useState('');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+
+  useEffect(() => {
+    const fetchGroups = async () => {
+      setGroupsLoading(true);
+      setGroupsError('');
+      try {
+        const data = await getGroups();
+        setGroups(data);
+      } catch (err: any) {
+        setGroupsError(err?.response?.data?.error || 'Failed to load groups.');
+      } finally {
+        setGroupsLoading(false);
+      }
+    };
+    fetchGroups();
+  }, []);
+
+  const handleGroupCreated = (newGroup: Group) => {
+    setGroups((prev) => [newGroup, ...prev]);
+  };
+
+  const netBalance = MOCK_BALANCES.reduce((acc, b) =>
+    b.dir === 'owed_to_me' ? acc + b.amount : acc - b.amount, 0);
+
+  const totalMembers = groups.reduce((acc, g) => acc + (g.member_count ?? 0), 0);
+
+  return (
+    <div className="min-h-screen bg-gray-50/60 flex flex-col font-sans">
+
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        * { font-family: 'Plus Jakarta Sans', sans-serif; }
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(18px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideIn {
+          from { opacity: 0; transform: translateX(-10px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+      `}</style>
+
+      {/* ── Header ── */}
+      <Header activeTab={activeTab} setActiveTab={setActiveTab} />
+
+      {/* ── Main ── */}
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+
+        {/* Welcome */}
+        <div style={{ animation: 'fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.05s both' }}>
+          <h2 className="text-2xl font-extrabold text-gray-900">
+            Good day, <span className="bg-gradient-to-r from-violet-600 to-indigo-500 bg-clip-text text-transparent">{user?.name?.split(' ')[0] ?? 'there'}</span>
+          </h2>
+          <p className="text-sm text-gray-400 mt-0.5">Here's your expense snapshot for today.</p>
+        </div>
+
+        {/* ── Stat row ── */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard label="Net Balance" value={`${netBalance >= 0 ? '+' : ''}$${Math.abs(netBalance).toFixed(2)}`}
+            sub={netBalance >= 0 ? 'Others owe you' : 'You owe others'} icon={ICONS.balance} delay="0.08s" />
+          <StatCard label="Active Groups" value={String(groups.length)}
+            sub={`Across ${totalMembers} members`} icon={ICONS.groups} delay="0.12s" />
+          <StatCard label="This Month" value="$0.00" sub="Total shared expenses" icon={ICONS.activity} delay="0.16s" />
+          <StatCard label="Settled" value="0" sub="Transactions this month" icon={ICONS.check} delay="0.20s" />
+        </div>
+
+        {/* ── Balance quick-view ── */}
+        <div className="grid lg:grid-cols-5 gap-6">
+
+          {/* Balances */}
+          <div className="lg:col-span-2 bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden"
+            style={{ animation: 'fadeUp 0.55s cubic-bezier(0.16,1,0.3,1) 0.22s both' }}>
+            <div className="flex items-center justify-between px-5 pt-5 pb-3">
+              <h3 className="font-bold text-gray-800 text-sm">Balances</h3>
+              <button className="text-xs text-violet-500 font-semibold hover:text-violet-400 transition-colors cursor-pointer">
+                Settle Up →
+              </button>
+            </div>
+            <ul className="divide-y divide-gray-50">
+              {MOCK_BALANCES.map((b, i) => (
+                <li key={b.id} className="flex items-center justify-between px-5 py-3.5"
+                  style={{ animation: `slideIn 0.4s cubic-bezier(0.16,1,0.3,1) ${0.25 + i * 0.06}s both` }}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-100 to-indigo-100 flex items-center justify-center text-violet-600 text-xs font-bold">
+                      {b.name.charAt(0)}
+                    </div>
+                    <span className="text-sm font-semibold text-gray-700">{b.name}</span>
+                  </div>
+                  <div className={`flex items-center gap-1 text-sm font-bold ${b.dir === 'owed_to_me' ? 'text-emerald-500' : 'text-rose-500'}`}>
+                    ${b.amount.toFixed(2)}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Groups */}
+          <div className="lg:col-span-3 bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden"
+            style={{ animation: 'fadeUp 0.55s cubic-bezier(0.16,1,0.3,1) 0.26s both' }}>
+            <div className="flex items-center justify-between px-5 pt-5 pb-3">
+              <h3 className="font-bold text-gray-800 text-sm">Your Groups</h3>
+              <button
+                type="button"
+                onClick={() => setShowCreateModal(true)}
+                className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow shadow-violet-500/30 hover:opacity-90 transition-opacity cursor-pointer"
+              >
+                + New Group
+              </button>
+            </div>
+
+            {/* Loading state */}
+            {groupsLoading && (
+              <div className="flex items-center justify-center py-12">
+                <div className="w-6 h-6 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+              </div>
+            )}
+
+            {/* Error state */}
+            {!groupsLoading && groupsError && (
+              <div className="px-5 py-10 text-center">
+                <p className="text-sm text-rose-500 font-medium">{groupsError}</p>
+              </div>
+            )}
+
+            {/* Empty state */}
+            {!groupsLoading && !groupsError && groups.length === 0 && (
+              <div className="px-5 py-12 text-center">
+                <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-300">
+                  <Icon path={ICONS.empty} className="size-6" />
+                </div>
+                <p className="text-sm font-semibold text-gray-500">No groups yet</p>
+                <p className="text-xs text-gray-400 mt-0.5">Create one to start splitting expenses.</p>
+              </div>
+            )}
+
+            {/* Group list */}
+            {!groupsLoading && !groupsError && groups.length > 0 && (
+              <ul className="divide-y divide-gray-50">
+                {groups.map((g, i) => (
+                  <li key={g.id}
+                    className="flex items-center gap-4 px-5 py-3.5 hover:bg-gray-50/60 transition-colors group"
+                    style={{ animation: `slideIn 0.4s cubic-bezier(0.16,1,0.3,1) ${0.28 + i * 0.06}s both` }}>
+                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${GROUP_COLORS[i % GROUP_COLORS.length]} flex items-center justify-center shadow-md flex-shrink-0`}>
+                      <Icon path={ICONS.groups} className="size-5 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-gray-800 truncate">{g.name}</p>
+                      <p className="text-xs text-gray-400">
+                        {g.member_count ?? 0} {(g.member_count ?? 0) === 1 ? 'member' : 'members'}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => navigate(`/groups/${g.id}`)}
+                      className="px-3.5 py-1.5 text-xs font-semibold rounded-lg border border-violet-200 text-violet-600 hover:bg-violet-50 hover:border-violet-300 transition-all cursor-pointer flex-shrink-0"
+                    >
+                      View
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+
+        {/* ── Recent Activity ── */}
+        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden"
+          style={{ animation: 'fadeUp 0.55s cubic-bezier(0.16,1,0.3,1) 0.34s both' }}>
+          <div className="flex items-center justify-between px-5 pt-5 pb-3">
+            <h3 className="font-bold text-gray-800 text-sm">Recent Activity</h3>
+            <button className="text-xs text-violet-500 font-semibold hover:text-violet-400 transition-colors cursor-pointer">
+              View all →
+            </button>
+          </div>
+          <ul className="divide-y divide-gray-50">
+            {MOCK_ACTIVITY.map((a, i) => (
+              <li key={a.id} className="flex items-center gap-4 px-5 py-3.5"
+                style={{ animation: `slideIn 0.4s cubic-bezier(0.16,1,0.3,1) ${0.36 + i * 0.05}s both` }}>
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${a.you ? 'bg-violet-50 text-violet-500' : 'bg-gray-50 text-gray-400'}`}>
+                  <Icon path={ICONS.add} className="size-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-800 truncate">{a.desc}</p>
+                  <p className="text-xs text-gray-400">
+                    {a.you ? 'You paid' : `${a.who} paid`} · {a.group}
+                  </p>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <p className="text-sm font-bold text-gray-700">${a.amount.toFixed(2)}</p>
+                  <p className="text-xs text-gray-400">{a.date}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* ── Quick Actions ── */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3"
+          style={{ animation: 'fadeUp 0.55s cubic-bezier(0.16,1,0.3,1) 0.42s both' }}>
+          {[
+            { label: 'Add Expense', icon: ICONS.add, primary: true, action: () => { } },
+            { label: 'Settle Up', icon: ICONS.settle, primary: false, action: () => { } },
+            { label: 'New Group', icon: ICONS.groups, primary: false, action: () => setShowCreateModal(true) },
+            { label: 'Activity', icon: ICONS.activity, primary: false, action: () => setActiveTab('activity') },
+          ].map((act) => (
+            <button key={act.label} onClick={act.action}
+              className={`flex flex-col items-center gap-2 py-4 rounded-2xl font-semibold text-sm transition-all duration-150 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer
+              ${act.primary
+                  ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-500/30'
+                  : 'bg-white border border-gray-100 text-gray-600 shadow-sm hover:shadow-md hover:border-violet-200 hover:text-violet-600'}`}>
+              <Icon path={act.icon} className="size-5" />
+              {act.label}
+            </button>
+          ))}
+        </div>
+      </main>
+
+      {/* ── Create Group Modal ── */}
+      <CreateGroupModal
+        open={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onCreated={handleGroupCreated}
+      />
+    </div>
+  );
+};
+
+export default Dashboard;
