@@ -8,6 +8,10 @@ import {
      addMember,
      removeMember,
 } from '../controllers/groupController.ts';
+import {
+     getExpensesByGroup,
+     createExpense,
+} from '../controllers/expenseController.ts';
 
 const router = express.Router();
 
@@ -28,6 +32,12 @@ router.post('/:groupId/members', validateFields(['email']), addMember);
 
 // DELETE /api/groups/:groupId/members — Remove a member from a group
 router.delete('/:groupId/members', validateFields(['userId']), removeMember);
+
+// GET /api/groups/:groupId/expenses — Get all expenses for a group
+router.get('/:groupId/expenses', getExpensesByGroup);
+
+// POST /api/groups/:groupId/expenses — Create a new expense in a group
+router.post('/:groupId/expenses', validateFields(['title', 'amount']), createExpense);
 
 export default router;
 

@@ -4,6 +4,7 @@ import 'dotenv/config';
 import authRoutes from './routes/authRoutes.ts';
 import groupRoutes from './routes/groupRoutes.ts';
 import expenseRoutes from './routes/expenseRoutes.ts';
+import settlementRoutes from './routes/settlementRoutes.ts';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -21,6 +22,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api/expenses', expenseRoutes);
+app.use('/api/settlements', settlementRoutes);
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

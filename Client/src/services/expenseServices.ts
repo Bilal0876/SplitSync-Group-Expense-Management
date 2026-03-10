@@ -12,7 +12,7 @@ export interface Expense {
 
 /** Fetch all expenses for a specific group */
 export const getExpensesByGroup = async (groupId: number): Promise<Expense[]> => {
-     const response = await api.get<Expense[]>(`/expenses/group/${groupId}`);
+     const response = await api.get<Expense[]>(`/groups/${groupId}/expenses`);;
      return response.data;
 };
 

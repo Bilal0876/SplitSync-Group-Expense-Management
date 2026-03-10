@@ -165,8 +165,9 @@ const Dashboard = () => {
       try {
         const data = await getGroups();
         setGroups(data);
-      } catch (err: any) {
-        setGroupsError(err?.response?.data?.error || 'Failed to load groups.');
+      } catch (err: unknown) {
+        const error = err as any;
+        setGroupsError(error?.response?.data?.error || 'Failed to load groups.');
       } finally {
         setGroupsLoading(false);
       }

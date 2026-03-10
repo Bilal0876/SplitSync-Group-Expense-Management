@@ -26,8 +26,6 @@ router.put('/:id', [
 ], ExpenseController.updateExpense);
 
 // DELETE
-router.delete('/:id', [
-     validateFields(['id'])
-], ExpenseController.deleteExpense);
+router.delete('/:id', ExpenseController.deleteExpense);
 
 export default router;

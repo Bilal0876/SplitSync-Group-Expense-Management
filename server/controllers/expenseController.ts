@@ -4,9 +4,21 @@ import * as GroupModel from '../models/groupModel';
 
 /**
  * Creates an expense and its corresponding splits within a single transaction.
+ * Supports both:
+ *   POST /api/expenses (legacy, groupId/payerId in body)
+ *   POST /api/groups/:groupId/expenses (new, groupId from params, payerId from auth)
  */
-export const createExpense = async (req, res) => {
-     const { groupId, payerId, description, amount } = req.body;
+export const createExpense = async (req: any, res: any) => {
+     const groupId = req.params.groupId ?? req.body.groupId;
+     const payerId = req.user?.id ?? req.body.payerId;
+     // Client sends "title", DB column is "description" — support both
+     const description = req.body.description ?? req.body.title;
+     const { amount } = req.body;
+
+     if (!groupId || !payerId || !description || !amount) {
+          return res.status(400).json({ error: "Missing required fields: groupId, payerId/auth, title/description, amount" });
+     }
+
      const client = await db.pool.connect();
 
      try {
@@ -18,7 +30,11 @@ export const createExpense = async (req, res) => {
 
           // 2. Fetch all members to calculate splits
           const groupData = await GroupModel.getGroupById(groupId);
-          const members = groupData[0].members.map(m => m.id);
+          if (!groupData) {
+               client.release();
+               return res.status(404).json({ error: "Group not found" });
+          }
+          const members = groupData.members.map((m: any) => m.id);
 
           await client.query('BEGIN');
 
@@ -45,7 +61,17 @@ export const createExpense = async (req, res) => {
           }
 
           await client.query('COMMIT');
-          res.status(201).json(newExpense);
+
+          // Return in the shape the client expects
+          res.status(201).json({
+               id: newExpense.id,
+               title: newExpense.description,
+               amount: newExpense.amount,
+               paid_by: newExpense.payer_id,
+               paid_by_username: req.user?.username ?? 'You',
+               created_at: newExpense.created_at,
+               split_count: count,
+          });
 
      } catch (error) {
           await client.query('ROLLBACK');
@@ -72,11 +98,16 @@ export const getExpensesByGroup = async (req: any, res: any) => {
                return res.status(403).json({ error: "Access denied: You are not a member of this group" });
           }
 
-          // 2. Fetch expenses joined with users to get the payer's username
+          // 2. Fetch expenses with field aliases matching the client's Expense interface
           const query = `
       SELECT 
-        e.*, 
-        u.username AS payer_name 
+        e.id,
+        e.description AS title,
+        e.amount, 
+        e.payer_id AS paid_by,
+        u.username AS paid_by_username,
+        e.created_at,
+        (SELECT COUNT(*) FROM expense_splits es WHERE es.expense_id = e.id)::int AS split_count
       FROM expenses e
       JOIN users u ON e.payer_id = u.id
       WHERE e.group_id = $1

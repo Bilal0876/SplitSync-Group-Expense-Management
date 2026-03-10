@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
 const AuthPage = () => {
+  //useState hook to manage the states
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -10,10 +11,11 @@ const AuthPage = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  //useAuth hook to get the authentication state
   const { login, register, token } = useAuth();
   const navigate = useNavigate();
 
-  // If already authenticated, redirect to dashboard
+  // If authenticated, navigate to dashboard
   useEffect(() => {
     if (token) {
       navigate('/dashboard', { replace: true });
@@ -22,6 +24,7 @@ const AuthPage = () => {
 
   if (token) return null;
 
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -46,9 +49,8 @@ const AuthPage = () => {
 
   return (
     <div className="min-h-screen w-full flex flex-col lg:flex-row bg-white overflow-x-hidden">
-      {/* Left Section: Branding & Slogan */}
-      {/* Right Section: Auth Form */}
-      <div className='flex-1  flex items-center justify-center p-6 xl:max-w-[43%] lg:max-w-[41%] lg:p-10 bg-gray-50/30 bg-white lg:justify-end md:py-30 sm:p-20 py-30'>
+      {/*Auth Form */}
+      <div className='flex-1  flex items-center justify-center p-6 xl:max-w-[43%] lg:max-w-[41%] lg:p-8 bg-gray-50/30 bg-white lg:justify-end md:py-30 sm:p-20 py-30 xl:pl-80'>
         <div className="w-full h-fit max-w-md bg-white border border-gray-100 rounded-[2rem] p-8 lg:p-5 shadow-2xl"
           style={{ animation: 'fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
 
@@ -105,14 +107,8 @@ const AuthPage = () => {
               <label htmlFor="email" className="text-xs font-semibold text-gray-500 uppercase tracking-widest">
                 Email
               </label>
-              <input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="email"
+              <input id="email" type="email" placeholder="you@example.com" value={email}
+                onChange={(e) => setEmail(e.target.value)} required autoComplete="email"
                 className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 placeholder-gray-300 text-sm outline-none focus:border-violet-500 focus:bg-violet-50 transition-all"
               />
             </div>
@@ -121,13 +117,8 @@ const AuthPage = () => {
               <label htmlFor="password" className="text-xs font-semibold text-gray-500 uppercase tracking-widest">
                 Password
               </label>
-              <input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
+              <input id="password" type="password" placeholder="••••••••" value={password}
+                onChange={(e) => setPassword(e.target.value)} required
                 autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                 className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 placeholder-gray-300 text-sm outline-none focus:border-violet-500 focus:bg-violet-50 transition-all"
               />
