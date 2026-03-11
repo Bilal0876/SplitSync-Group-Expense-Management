@@ -57,7 +57,7 @@ const BalanceSummary: React.FC<BalanceSummaryProps> = ({ groupId, onSettled }) =
   if (balances.length === 0) return <div className="p-4 text-gray-500">All settled up! No outstanding balances.</div>;
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6 mt-6 border border-gray-100">
+    <div className="bg-white rounded-lg shadow-sm p-2 mt-1 border border-gray-100">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold text-gray-800">Balance Summary</h2>
         <button
@@ -78,11 +78,10 @@ const BalanceSummary: React.FC<BalanceSummaryProps> = ({ groupId, onSettled }) =
             <button
               onClick={() => handleMarkSettled(rec, index)}
               disabled={processing !== null}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                processing === index
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-indigo-600 text-white hover:bg-indigo-700'
-              }`}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${processing === index
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                }`}
             >
               {processing === index ? 'Processing...' : 'Mark Settled'}
             </button>

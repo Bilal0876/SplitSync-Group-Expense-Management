@@ -3,56 +3,55 @@ import { authenticateToken } from '../middleware/authMiddleware.ts';
 import { handleValidationErrors } from '../middleware/validateMiddleware.ts';
 import { body, param } from 'express-validator';
 import {
-     createGroup,
-     getGroupsByUser,
-     getGroupById,
-     addMember,
-     removeMember,
-     leaveGroup,
+    createGroup,
+    getGroupsByUser,
+    getGroupById,
+    addMember,
+    removeMember,
+    leaveGroup,
 } from '../controllers/groupController.ts';
 import {
-     getExpensesByGroup,
-     createExpense,
+    getExpensesByGroup,
+    createExpense,
 } from '../controllers/expenseController.ts';
 
 const router = express.Router();
 
-// All routes require authentication
 router.use(authenticateToken);
 
-// POST /api/groups — Create a new group
+// /api/groups - to create a new group
 router.post(
-    '/', 
+    '/',
     [body('name').notEmpty().withMessage('Group name is required').trim()],
     handleValidationErrors,
     createGroup
 );
 
-// GET /api/groups — Get all groups for the authenticated user
+// /api/groups — to get all groups for the user
 router.get('/', getGroupsByUser);
 
-// GET /api/groups/:groupId — Get a single group by ID
+// /api/groups/:groupId — to Get a single group by ID
 router.get(
-    '/:groupId', 
+    '/:groupId',
     [param('groupId').isInt().withMessage('Valid Group ID is required')],
     handleValidationErrors,
     getGroupById
 );
 
-// POST /api/groups/:groupId/members — Add a member to a group
+//  /api/groups/:groupId/members — to add a member to a group
 router.post(
-    '/:groupId/members', 
+    '/:groupId/members',
     [
         param('groupId').isInt(),
-        body('email').isEmail().withMessage('Valid email is required').normalizeEmail()
+        body('email').isEmail().withMessage('Valid email is required').normalizeEmail({ gmail_remove_dots: false })
     ],
     handleValidationErrors,
     addMember
 );
 
-// DELETE /api/groups/:groupId/members — Remove a member from a group
+//  /api/groups/:groupId/members — to remove a member from a group
 router.delete(
-    '/:groupId/members', 
+    '/:groupId/members',
     [
         param('groupId').isInt(),
         body('userId').isInt().withMessage('Valid User ID is required')
@@ -61,7 +60,7 @@ router.delete(
     removeMember
 );
 
-// DELETE /api/groups/:groupId/leave — Current user leaves the group
+// /api/groups/:groupId/leave — for a user to leave the group
 router.delete(
     '/:groupId/leave',
     [param('groupId').isInt()],
@@ -69,17 +68,17 @@ router.delete(
     leaveGroup
 );
 
-// GET /api/groups/:groupId/expenses — Get all expenses for a group
+// /api/groups/:groupId/expenses — to get all expenses for a group
 router.get(
-    '/:groupId/expenses', 
+    '/:groupId/expenses',
     [param('groupId').isInt()],
     handleValidationErrors,
     getExpensesByGroup
 );
 
-// POST /api/groups/:groupId/expenses — Create a new expense in a group
+// /api/groups/:groupId/expenses — to add a new expense in a group
 router.post(
-    '/:groupId/expenses', 
+    '/:groupId/expenses',
     [
         param('groupId').isInt(),
         body('title').notEmpty().withMessage('Description/Title is required').trim(),

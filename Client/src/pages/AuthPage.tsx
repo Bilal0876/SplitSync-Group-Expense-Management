@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import Logo from '../components/Logo';
 
 const AuthPage = () => {
   //useState hook to manage the states
@@ -49,21 +50,14 @@ const AuthPage = () => {
 
   return (
     <div className="min-h-screen w-full flex flex-col lg:flex-row bg-white overflow-x-hidden">
-      {/*Auth Form */}
+      {/*Form section*/}
       <div className='flex-1  flex items-center justify-center p-6 xl:max-w-[43%] lg:max-w-[41%] lg:p-8 bg-gray-50/30 bg-white lg:justify-end md:py-30 sm:p-20 py-30 xl:pl-80'>
         <div className="w-full h-fit max-w-md bg-white border border-gray-100 rounded-[2rem] p-8 lg:p-5 shadow-2xl"
           style={{ animation: 'fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
 
-          {/* Brand */}
-          <div className="flex flex-col items-center gap-2 mb-7">
-            <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-violet-500/30">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-8">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" className="size-5 text-white" />
-              </svg>
-            </span>
-            <h1 className="text-xl font-bold text-gray-800 tracking-tight text-center">
-              Split-Sync
-            </h1>
+          {/* Logo */}
+          <div className="flex flex-col items-center gap-2 mb-5">
+            <Logo variant="vertical" />
           </div>
 
           {/* Tab switcher */}
@@ -85,6 +79,8 @@ const AuthPage = () => {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+
+            {/*show full name section for signup*/}
             {mode === 'signup' && (
               <div className="flex flex-col gap-1">
                 <label htmlFor="name" className="text-xs font-semibold text-gray-500 uppercase tracking-widest">
@@ -143,7 +139,7 @@ const AuthPage = () => {
             </button>
           </form>
 
-          {/* Switch mode */}
+          {/* for signup */}
           <p className="mt-5 text-center text-sm text-gray-400">
             {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
             <button
@@ -156,6 +152,8 @@ const AuthPage = () => {
           </p>
         </div>
       </div>
+
+      {/*TEXT SECTION*/}
       <div className='flex-1 flex flex-col justify-center items-center lg:items-start px-6 py-12 lg:px-6 md:px-10'>
         <h1 className="text-4xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold text-center lg:text-left bg-gradient-to-r from-violet-600 via-purple-500 to-indigo-600 bg-clip-text text-transparent leading-tight">
           Track Shared Expenses.   <br />Simplify Spending. <br /> Settle Smarter.

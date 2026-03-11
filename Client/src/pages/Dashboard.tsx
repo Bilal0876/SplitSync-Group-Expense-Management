@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header.tsx';
 import CreateGroupModal from '../components/CreateGroupModal.tsx';
 import { getGroups, type Group } from '../services/groupServices';
 import { getDashboardData, type DashboardData } from '../services/userServices';
 
-// ── tiny icon helpers ────────────────────────────────────────────────────────
+
 const Icon = ({ path, className = 'size-5' }: { path: string; className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
     strokeWidth={1.5} stroke="currentColor" className={className}>
@@ -20,7 +20,6 @@ const ICONS = {
   add: 'M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
   settle: 'M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5',
   activity: 'M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z',
-  chevron: 'M8.25 4.5l7.5 7.5-7.5 7.5',
   check: 'M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
   close: 'M6 18 18 6M6 6l12 12',
   empty: 'M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z',
@@ -32,10 +31,9 @@ const GROUP_COLORS = [
   'from-purple-500 to-fuchsia-600',
   'from-rose-500 to-pink-600',
   'from-amber-500 to-orange-600',
-  'from-emerald-500 to-teal-600',
 ];
 
-// ── stat card ────────────────────────────────────────────────────────────────
+// ── stat card functon
 const StatCard = ({ label, value, sub, icon, delay = '0ms' }: {
   label: string; value: string; sub: string; icon: string; delay?: string;
 }) => (
@@ -53,31 +51,18 @@ const StatCard = ({ label, value, sub, icon, delay = '0ms' }: {
 );
 
 
-// ── main dashboard ────────────────────────────────────────────────────────────
+//main dashboard 
 const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
 
-  // ── Tab syncing logic ──
-  const queryParams = new URLSearchParams(location.search);
-  const initialTab = (queryParams.get('tab') as any) || 'overview';
-  const [activeTab, setActiveTab] = useState<'overview' | 'groups' | 'activity'>(initialTab);
-
-  useEffect(() => {
-    const tab = queryParams.get('tab') as any;
-    if (tab && tab !== activeTab) {
-      setActiveTab(tab);
-    }
-  }, [location.search]);
-
-  // ── Groups state ──
+  //Groups states
   const [groups, setGroups] = useState<Group[]>([]);
   const [groupsLoading, setGroupsLoading] = useState(true);
   const [groupsError, setGroupsError] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
 
-  // ── Dashboard state ──
+  //Dashboard states
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
 
@@ -121,13 +106,12 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50/60 flex flex-col font-sans">
-
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
       `}</style>
 
-      {/* ── Header ── */}
-      <Header activeTab={activeTab} setActiveTab={setActiveTab} />
+      {/* Header component */}
+      <Header />
 
       {/* ── Main ── */}
       <main className="flex-1 w-full max-w-4xl xl:max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-5">
@@ -140,17 +124,17 @@ const Dashboard = () => {
           <p className="text-sm text-gray-400 mt-0.5">Here's your expense snapshot for today.</p>
         </div>
 
-        {/* ── Stat row ── */}
+        {/*Stats*/}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard label="Net Balance" value={`${netBalance >= 0 ? '+' : '-'}$${Math.abs(netBalance).toFixed(2)}`}
             sub={netBalance >= 0 ? 'Others owe you' : 'You owe others'} icon={ICONS.balance} delay="0.08s" />
           <StatCard label="Active Groups" value={String(groupsCount)}
             sub={`Total groups joined`} icon={ICONS.groups} delay="0.12s" />
-          <StatCard label="This Month" value="$0.00" sub="Coming Soon" icon={ICONS.activity} delay="0.16s" />
+          <StatCard label="This Month" value="$0.00" sub="Not available" icon={ICONS.activity} delay="0.16s" />
           <StatCard label="Settled" value="0" sub="Summarized" icon={ICONS.check} delay="0.20s" />
         </div>
 
-        {/* ── Balance quick-view ── */}
+        {/*Balance and Groups */}
         <div className="grid lg:grid-cols-5 gap-6">
 
           {/* Balances */}
@@ -158,7 +142,10 @@ const Dashboard = () => {
             style={{ animation: 'fadeUp 0.55s cubic-bezier(0.16,1,0.3,1) 0.22s both' }}>
             <div className="flex items-center justify-between px-5 pt-5 pb-3">
               <h3 className="font-bold text-gray-800 text-sm">Balances</h3>
-              <button className="text-xs text-violet-500 font-semibold hover:text-violet-400 transition-colors cursor-pointer">
+              <button 
+                onClick={() => navigate('/activity')}
+                className="text-xs text-violet-500 font-semibold hover:text-violet-400 transition-colors cursor-pointer"
+              >
                 Settle Up →
               </button>
             </div>
@@ -191,13 +178,21 @@ const Dashboard = () => {
             style={{ animation: 'fadeUp 0.55s cubic-bezier(0.16,1,0.3,1) 0.26s both' }}>
             <div className="flex items-center justify-between px-5 pt-5 pb-3">
               <h3 className="font-bold text-gray-800 text-sm">Your Groups</h3>
-              <button
-                type="button"
-                onClick={() => setShowCreateModal(true)}
-                className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow shadow-violet-500/30 hover:opacity-90 transition-opacity cursor-pointer"
-              >
-                + New Group
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => navigate('/groups')}
+                  className="text-xs text-violet-500 font-semibold hover:text-violet-400 transition-colors cursor-pointer"
+                >
+                  View all
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(true)}
+                  className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow shadow-violet-500/30 hover:opacity-90 transition-opacity cursor-pointer"
+                >
+                  + New
+                </button>
+              </div>
             </div>
 
             {/* Loading state */}
@@ -228,7 +223,7 @@ const Dashboard = () => {
             {/* Group list */}
             {!groupsLoading && !groupsError && groups.length > 0 && (
               <ul className="divide-y divide-gray-50">
-                {groups.map((g, i) => (
+                {groups.slice(0, 5).map((g, i) => (
                   <li key={g.id}
                     onClick={() => navigate(`/groups/${g.id}`)}
                     className="flex items-center gap-4 px-5 py-3.5 hover:bg-gray-50/60 transition-colors group cursor-pointer"
@@ -252,22 +247,28 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* ── Recent Activity ── */}
+        {/* Recent Activities section */}
         <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden"
           style={{ animation: 'fadeUp 0.55s cubic-bezier(0.16,1,0.3,1) 0.34s both' }}>
+
           <div className="flex items-center justify-between px-5 pt-5 pb-3">
             <h3 className="font-bold text-gray-800 text-sm">Recent Activity</h3>
-            <button className="text-xs text-violet-500 font-semibold hover:text-violet-400 transition-colors cursor-pointer">
+            <button 
+              onClick={() => navigate('/activity')}
+              className="text-xs text-violet-500 font-semibold hover:text-violet-400 transition-colors cursor-pointer"
+            >
               View all →
             </button>
           </div>
+
+          {/*activities list*/}
           <ul className="divide-y divide-gray-50">
             {statsLoading ? (
               <div className="py-12 flex justify-center"><div className="w-6 h-6 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" /></div>
             ) : dashboardData?.recentActivity.length === 0 ? (
               <p className="py-12 text-sm text-gray-400 text-center font-medium">No recent activity found.</p>
             ) : (
-              dashboardData?.recentActivity.map((a, i) => (
+              dashboardData?.recentActivity.slice(0, 5).map((a, i) => (
                 <li key={`${a.type}-${i}`} className="flex items-center gap-4 px-5 py-3.5 cursor-default hover:bg-gray-50/40 transition-colors"
                   style={{ animation: `slideIn 0.4s cubic-bezier(0.16,1,0.3,1) ${0.36 + i * 0.05}s both` }}>
                   <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${a.paid_by_id === user?.id ? 'bg-violet-50 text-violet-500' : 'bg-gray-50 text-gray-400'}`}>
@@ -289,10 +290,11 @@ const Dashboard = () => {
               ))
             )}
           </ul>
+
         </div>
       </main>
 
-      {/* ── Create Group Modal ── */}
+      {/* Create Group modal */}
       <CreateGroupModal
         open={showCreateModal}
         onClose={() => setShowCreateModal(false)}
@@ -301,5 +303,4 @@ const Dashboard = () => {
     </div>
   );
 };
-
 export default Dashboard;

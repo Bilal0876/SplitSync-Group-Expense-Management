@@ -28,7 +28,6 @@ const Icon = ({ path, className = 'size-5' }: { path: string; className?: string
 );
 
 const ICONS = {
-     logo: 'M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
      back: 'M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18',
      members: 'M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z',
      add_member: 'M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z',
@@ -39,8 +38,6 @@ const ICONS = {
      calendar: 'M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5',
      trash: 'M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0',
      check: 'M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
-     user_circle: 'M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z',
-     clock: 'M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
      split: 'M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5',
      close: 'M6 18 18 6M6 6l12 12',
      dollar: 'M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
@@ -52,10 +49,8 @@ const AVATAR_GRADIENTS = [
      'from-violet-500 to-purple-600',
      'from-indigo-500 to-blue-600',
      'from-purple-500 to-fuchsia-600',
-     'from-blue-500 to-cyan-500',
      'from-rose-500 to-pink-600',
-     'from-amber-500 to-orange-500',
-     'from-emerald-500 to-teal-600',
+     'from-amber-500 to-orange-600',
 ];
 
 const getGradient = (name: string) =>
@@ -89,7 +84,6 @@ const ExpenseSkeleton = () => (
      </li>
 );
 
-// ExpenseRow has been replaced by the ExpenseCard component (imported above)
 
 interface AddExpenseModalProps {
      groupId: string;
@@ -256,7 +250,7 @@ const AddExpenseModal = ({ groupId, onClose, onSuccess }: AddExpenseModalProps) 
      );
 };
 
-// â”€â”€ Main Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+//Main Component
 const GroupDetail = () => {
      const { id } = useParams<{ id: string }>();
      const navigate = useNavigate();
@@ -294,7 +288,7 @@ const GroupDetail = () => {
                .finally(() => setLoading(false));
      }, [id]);
 
-     // â”€â”€ Fetch expenses â”€â”€
+     // Fetch expenses
      const fetchExpenses = () => {
           if (!id) return;
           setExpensesLoading(true);
@@ -336,7 +330,7 @@ const GroupDetail = () => {
           }
      };
 
-     // â”€â”€ Remove member â”€â”€
+     // Remove member
      const handleRemoveMember = async (memberId: number) => {
           try {
                await api.delete(`/groups/${id}/members`, { data: { userId: memberId } });
@@ -359,7 +353,7 @@ const GroupDetail = () => {
 
      const totalSpend = expenses.reduce((sum, e) => sum + parseFloat(String(e.amount)), 0);
 
-     // â”€â”€ Loading skeleton â”€â”€
+     // Loading skeleton
      if (loading) return (
           <div className="min-h-screen bg-gray-50/60 flex flex-col font-sans">
                <style>{`@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap'); * { font-family: 'Plus Jakarta Sans', sans-serif; }`}</style>
@@ -383,7 +377,7 @@ const GroupDetail = () => {
           </div>
      );
 
-     // â”€â”€ Error state â”€â”€
+     // Error state
      if (error) return (
           <div className="min-h-screen bg-gray-50/60 flex flex-col items-center justify-center gap-4 font-sans">
                <style>{`@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap'); * { font-family: 'Plus Jakarta Sans', sans-serif; }`}</style>
@@ -497,108 +491,6 @@ const GroupDetail = () => {
 
                     {/* â”€â”€ Two-col layout â”€â”€ */}
                     <div className="grid lg:grid-cols-5 gap-6">
-
-                         {/* â”€â”€ Left: Members â”€â”€ */}
-                         <div className="lg:col-span-2 flex flex-col gap-4">
-
-                              {/* Add Member */}
-                              <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden"
-                                   style={{ animation: 'fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.10s both' }}>
-                                   <div className="px-5 pt-5 pb-3 border-b border-gray-50">
-                                        <h3 className="font-bold text-gray-800 text-sm flex items-center gap-2">
-                                             <span className="w-7 h-7 rounded-lg bg-violet-50 flex items-center justify-center">
-                                                  <Icon path={ICONS.add_member} className="size-4 text-violet-500" />
-                                             </span>
-                                             Add Member
-                                        </h3>
-                                   </div>
-                                   <div className="px-5 py-4">
-                                        <form onSubmit={handleAddMember} className="flex flex-col gap-3">
-                                             <div className="flex flex-col gap-1">
-                                                  <label htmlFor="member-email" className="text-xs font-semibold text-gray-400 uppercase tracking-widest">
-                                                       Email Address
-                                                  </label>
-                                                  <input
-                                                       id="member-email"
-                                                       type="email"
-                                                       placeholder="friend@example.com"
-                                                       value={memberEmail}
-                                                       onChange={e => { setMemberEmail(e.target.value); setAddMemberError(''); }}
-                                                       required
-                                                       className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 placeholder-gray-300 text-sm outline-none focus:border-violet-500 focus:bg-violet-50/50 transition-all"
-                                                  />
-                                             </div>
-                                             {addMemberError && (
-                                                  <p className="text-xs text-red-400 bg-red-50 border border-red-100 rounded-xl px-3 py-2">
-                                                       {addMemberError}
-                                                  </p>
-                                             )}
-                                             {addMemberSuccess && (
-                                                  <p className="text-xs text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-xl px-3 py-2 flex items-center gap-1.5"
-                                                       style={{ animation: 'popIn 0.3s cubic-bezier(0.16,1,0.3,1) both' }}>
-                                                       <Icon path={ICONS.check} className="size-4" /> Member added successfully!
-                                                  </p>
-                                             )}
-                                             <button
-                                                  type="submit"
-                                                  disabled={addingMember || !memberEmail.trim()}
-                                                  className="py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:opacity-90 hover:-translate-y-px active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-white font-bold text-sm shadow shadow-violet-500/30 transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer"
-                                             >
-                                                  {addingMember
-                                                       ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                                       : <><Icon path={ICONS.add_member} className="size-4" /> Invite Member</>
-                                                  }
-                                             </button>
-                                        </form>
-                                   </div>
-                              </div>
-
-                              {/* Members List */}
-                              <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden"
-                                   style={{ animation: 'fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.14s both' }}>
-                                   <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-50">
-                                        <h3 className="font-bold text-gray-800 text-sm flex items-center gap-2">
-                                             <span className="w-7 h-7 rounded-lg bg-violet-50 flex items-center justify-center">
-                                                  <Icon path={ICONS.members} className="size-4 text-violet-500" />
-                                             </span>
-                                             Members
-                                        </h3>
-                                        <span className="text-xs font-semibold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
-                                             {group?.members.length ?? 0}
-                                        </span>
-                                   </div>
-                                   {group?.members.length === 0 ? (
-                                        <div className="px-5 py-8 text-center">
-                                             <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-3">
-                                                  <Icon path={ICONS.members} className="size-6 text-gray-300" />
-                                             </div>
-                                             <p className="text-sm text-gray-400">No members yet. Invite someone above!</p>
-                                        </div>
-                                   ) : (
-                                        <ul className="divide-y divide-gray-50">
-                                             {group?.members.map((member, i) => (
-                                                  <li key={member.id}
-                                                       className="flex items-center gap-3 px-5 py-3 group hover:bg-gray-50/60 transition-colors"
-                                                       style={{ animation: `slideIn 0.4s cubic-bezier(0.16,1,0.3,1) ${0.16 + i * 0.05}s both` }}>
-                                                       <Avatar name={member.username} size="md" />
-                                                       <div className="flex-1 min-w-0">
-                                                            <p className="text-sm font-semibold text-gray-800 truncate">{member.username}</p>
-                                                            <p className="text-xs text-gray-400 truncate">{member.email}</p>
-                                                       </div>
-                                                       <button
-                                                            type="button"
-                                                            onClick={() => handleRemoveMember(member.id)}
-                                                            title="Remove member"
-                                                            className="opacity-0 group-hover:opacity-100 w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center text-gray-300 hover:text-red-400 transition-all cursor-pointer">
-                                                            <Icon path={ICONS.trash} className="size-3.5" />
-                                                       </button>
-                                                  </li>
-                                             ))}
-                                        </ul>
-                                   )}
-                              </div>
-                         </div>
-
                          {/* â”€â”€ Right: Expenses + Balances â”€â”€ */}
                          <div className="lg:col-span-3 flex flex-col gap-4">
 
@@ -700,7 +592,8 @@ const GroupDetail = () => {
                                              Balances
                                         </h3>
                                    </div>
-                                   <div className="px-5 py-4">
+
+                                   <div className="px-5 py-3">
                                         <BalanceSummary
                                              groupId={Number(id)}
                                              onSettled={() => {
@@ -712,22 +605,109 @@ const GroupDetail = () => {
                                    </div>
                               </div>
 
-                              {/* Quick Actions */}
-                              <div className="space-y-3" style={{ animation: 'fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.26s both' }}>
-                                   <div className="grid grid-cols-2 gap-3">
-                                        <button
-                                             type="button"
-                                             onClick={() => setShowExpenseModal(true)}
-                                             className="flex items-center justify-center gap-2 py-3.5 rounded-2xl font-semibold text-sm bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-500/30 hover:opacity-90 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer"
-                                        >
-                                             <Icon path={ICONS.add_expense} className="size-4" />
-                                             Add Expense
-                                        </button>
-                                        <button type="button" className="flex items-center justify-center gap-2 py-3.5 rounded-2xl font-semibold text-sm bg-white border border-gray-100 text-gray-600 shadow-sm hover:shadow-md hover:border-violet-200 hover:text-violet-600 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer">
-                                             <Icon path={ICONS.settle} className="size-4" />
-                                             Settle Up
-                                        </button>
+
+                         </div>
+                         {/* â”€â”€ Left: Members â”€â”€ */}
+                         <div className="lg:col-span-2 flex flex-col gap-4 ">
+
+                              {/* Add Member */}
+                              <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden"
+                                   style={{ animation: 'fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.10s both' }}>
+                                   <div className="px-5 pt-5 pb-3 border-b border-gray-50">
+                                        <h3 className="font-bold text-gray-800 text-sm flex items-center gap-2">
+                                             <span className="w-7 h-7 rounded-lg bg-violet-50 flex items-center justify-center">
+                                                  <Icon path={ICONS.add_member} className="size-4 text-violet-500" />
+                                             </span>
+                                             Add Member
+                                        </h3>
                                    </div>
+                                   <div className="px-5 py-4">
+                                        <form onSubmit={handleAddMember} className="flex flex-col gap-3">
+                                             <div className="flex flex-col gap-1">
+                                                  <label htmlFor="member-email" className="text-xs font-semibold text-gray-400 uppercase tracking-widest">
+                                                       Email Address
+                                                  </label>
+                                                  <input
+                                                       id="member-email"
+                                                       type="email"
+                                                       placeholder="friend@example.com"
+                                                       value={memberEmail}
+                                                       onChange={e => { setMemberEmail(e.target.value); setAddMemberError(''); }}
+                                                       required
+                                                       className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 placeholder-gray-300 text-sm outline-none focus:border-violet-500 focus:bg-violet-50/50 transition-all"
+                                                  />
+                                             </div>
+                                             {addMemberError && (
+                                                  <p className="text-xs text-red-400 bg-red-50 border border-red-100 rounded-xl px-3 py-2">
+                                                       {addMemberError}
+                                                  </p>
+                                             )}
+                                             {addMemberSuccess && (
+                                                  <p className="text-xs text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-xl px-3 py-2 flex items-center gap-1.5"
+                                                       style={{ animation: 'popIn 0.3s cubic-bezier(0.16,1,0.3,1) both' }}>
+                                                       <Icon path={ICONS.check} className="size-4" /> Member added successfully!
+                                                  </p>
+                                             )}
+                                             <button
+                                                  type="submit"
+                                                  disabled={addingMember || !memberEmail.trim()}
+                                                  className="py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:opacity-90 hover:-translate-y-px active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-white font-bold text-sm shadow shadow-violet-500/30 transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer"
+                                             >
+                                                  {addingMember
+                                                       ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                       : <><Icon path={ICONS.add_member} className="size-4" /> Invite Member</>
+                                                  }
+                                             </button>
+                                        </form>
+                                   </div>
+                              </div>
+
+                              {/* Members List */}
+                              <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden"
+                                   style={{ animation: 'fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.14s both' }}>
+                                   <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-50">
+                                        <h3 className="font-bold text-gray-800 text-sm flex items-center gap-2">
+                                             <span className="w-7 h-7 rounded-lg bg-violet-50 flex items-center justify-center">
+                                                  <Icon path={ICONS.members} className="size-4 text-violet-500" />
+                                             </span>
+                                             Members
+                                        </h3>
+                                        <span className="text-xs font-semibold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                                             {group?.members.length ?? 0}
+                                        </span>
+                                   </div>
+                                   {group?.members.length === 0 ? (
+                                        <div className="px-5 py-8 text-center">
+                                             <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-3">
+                                                  <Icon path={ICONS.members} className="size-6 text-gray-300" />
+                                             </div>
+                                             <p className="text-sm text-gray-400">No members yet. Invite someone above!</p>
+                                        </div>
+                                   ) : (
+                                        <ul className="divide-y divide-gray-50">
+                                             {group?.members.map((member, i) => (
+                                                  <li key={member.id}
+                                                       className="flex items-center gap-3 px-5 py-3 group hover:bg-gray-50/60 transition-colors"
+                                                       style={{ animation: `slideIn 0.4s cubic-bezier(0.16,1,0.3,1) ${0.16 + i * 0.05}s both` }}>
+                                                       <Avatar name={member.username} size="md" />
+                                                       <div className="flex-1 min-w-0">
+                                                            <p className="text-sm font-semibold text-gray-800 truncate">{member.username}</p>
+                                                            <p className="text-xs text-gray-400 truncate">{member.email}</p>
+                                                       </div>
+                                                       <button
+                                                            type="button"
+                                                            onClick={() => handleRemoveMember(member.id)}
+                                                            title="Remove member"
+                                                            className="opacity-0 group-hover:opacity-100 w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center text-gray-300 hover:text-red-400 transition-all cursor-pointer">
+                                                            <Icon path={ICONS.trash} className="size-3.5" />
+                                                       </button>
+                                                  </li>
+                                             ))}
+                                        </ul>
+                                   )}
+                              </div>
+                              {/* Leave Group */}
+                              <div className="space-y-3" style={{ animation: 'fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.26s both' }}>
                                    <button
                                         type="button"
                                         onClick={handleLeaveGroup}

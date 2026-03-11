@@ -1,8 +1,3 @@
-/**
- * Balance Calculator Utility
- * Implements the 5-step greedy algorithm to calculate minimal transactions.
- */
-
 interface UserBalance {
     userId: number;
     username: string;
@@ -19,13 +14,12 @@ export const calculateBalancesFromData = (expenses: any[], splits: any[], member
     const userBalances: Record<number, number> = {};
     const userIdToName: Record<number, string> = {};
 
-    // Initialize balances for all group members
     members.forEach(m => {
         userBalances[m.id] = 0;
         userIdToName[m.id] = m.username;
     });
 
-    // 1. amountPaid = sum of all expenses where payer_id = userId
+    // amountPaid = sum of all expenses where payer_id = userId
     expenses.forEach(exp => {
         const payerId = exp.payer_id;
         if (userBalances[payerId] !== undefined) {
@@ -33,7 +27,7 @@ export const calculateBalancesFromData = (expenses: any[], splits: any[], member
         }
     });
 
-    // 2. amountOwed = sum of expense_splits where user_id = userId
+    // amountOwed = sum of expense_splits where user_id = userId
     splits.forEach(split => {
         const debtorId = split.user_id;
         if (userBalances[debtorId] !== undefined) {

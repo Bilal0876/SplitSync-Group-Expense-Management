@@ -9,22 +9,24 @@ type NavigationTabsProps = {
   onClose?: () => void;
 };
 
-const NavigationTabs = ({ activeTab: propActiveTab, setActiveTab, isMobile, onClose }: NavigationTabsProps) => {
+const NavigationTabs = ({ activeTab: propActiveTab, isMobile, onClose }: NavigationTabsProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const queryParams = new URLSearchParams(location.search);
 
-  const activeTab = propActiveTab || (queryParams.get('tab') as Tab) || (location.pathname === '/dashboard' ? 'overview' : null);
+  const getActiveTab = (): Tab | null => {
+    if (propActiveTab) return propActiveTab;
+    if (location.pathname === '/dashboard') return 'overview';
+    if (location.pathname === '/groups') return 'groups';
+    if (location.pathname === '/activity') return 'activity';
+    return null;
+  };
 
+  const activeTab = getActiveTab();
   const tabs: Tab[] = ['overview', 'groups', 'activity'];
 
   const handleTabClick = (tab: Tab) => {
-    if (setActiveTab && location.pathname === '/dashboard') {
-      setActiveTab(tab);
-      navigate(`/dashboard?tab=${tab}`, { replace: true });
-    } else {
-      navigate(`/dashboard?tab=${tab}`);
-    }
+    const path = tab === 'overview' ? '/dashboard' : `/${tab}`;
+    navigate(path);
     if (onClose) onClose();
   };
 

@@ -4,14 +4,11 @@ import NavigationTabs from "../components/NavigationTabs.tsx";
 import UserMenu from "../components/UserMenu.tsx";
 import Logo from "../components/Logo.tsx";
 
-type Tab = 'overview' | 'groups' | 'activity';
-
 type HeaderProps = {
-  activeTab?: Tab;
-  setActiveTab?: (tab: Tab) => void;
+  // Navigation is now handled internally by NavigationTabs via URL
 };
 
-const Header = ({ activeTab, setActiveTab }: HeaderProps) => {
+const Header = ({ }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
@@ -26,7 +23,7 @@ const Header = ({ activeTab, setActiveTab }: HeaderProps) => {
 
         {/* Navigation (Desktop only) */}
         <div className="hidden md:flex flex-1 justify-center">
-          <NavigationTabs activeTab={activeTab} setActiveTab={setActiveTab} />
+          <NavigationTabs />
         </div>
 
         {/* User Menu & Mobile Toggle */}
@@ -82,8 +79,6 @@ const Header = ({ activeTab, setActiveTab }: HeaderProps) => {
             {/* Tabs */}
             <div className="flex-1 px-3">
               <NavigationTabs
-                activeTab={activeTab}
-                setActiveTab={setActiveTab}
                 isMobile={true}
                 onClose={() => setIsMenuOpen(false)}
               />

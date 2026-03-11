@@ -4,6 +4,8 @@ import AuthPage from './pages/AuthPage';
 import Dashboard from './pages/Dashboard';
 import GroupDetail from './pages/grouptDetail';
 import Settlements from './pages/Settlements';
+import ActivityPage from './pages/ActivityPage';
+import GroupsPage from './pages/GroupsPage';
 
 function App() {
   return (
@@ -36,6 +38,24 @@ function App() {
           element={
             <ProtectedRoute>
               <Settlements />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/activity"
+          element={
+            <ProtectedRoute>
+              <ActivityPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/groups"
+          element={
+            <ProtectedRoute>
+              <GroupsPage />
             </ProtectedRoute>
           }
         />
