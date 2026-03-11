@@ -45,6 +45,7 @@ const ICONS = {
      close: 'M6 18 18 6M6 6l12 12',
      dollar: 'M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
      tag: 'M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z',
+     leave: 'M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9',
 };
 
 const AVATAR_GRADIENTS = [
@@ -345,6 +346,17 @@ const GroupDetail = () => {
           }
      };
 
+     const handleLeaveGroup = async () => {
+          if (!window.confirm("Are you sure you want to leave this group?")) return;
+
+          try {
+               await api.delete(`/groups/${id}/leave`);
+               navigate('/dashboard');
+          } catch (err: any) {
+               alert(err?.response?.data?.error ?? 'Could not leave group.');
+          }
+     };
+
      const totalSpend = expenses.reduce((sum, e) => sum + parseFloat(String(e.amount)), 0);
 
      // â”€â”€ Loading skeleton â”€â”€
@@ -390,18 +402,6 @@ const GroupDetail = () => {
                <style>{`
                     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
                     * { font-family: 'Plus Jakarta Sans', sans-serif; }
-                    @keyframes fadeUp {
-                         from { opacity: 0; transform: translateY(18px); }
-                         to   { opacity: 1; transform: translateY(0); }
-                    }
-                    @keyframes slideIn {
-                         from { opacity: 0; transform: translateX(-10px); }
-                         to   { opacity: 1; transform: translateX(0); }
-                    }
-                    @keyframes popIn {
-                         from { opacity: 0; transform: scale(0.92); }
-                         to   { opacity: 1; transform: scale(1); }
-                    }
                     @keyframes backdropIn {
                          from { opacity: 0; }
                          to   { opacity: 1; }
@@ -713,19 +713,28 @@ const GroupDetail = () => {
                               </div>
 
                               {/* Quick Actions */}
-                              <div className="grid grid-cols-2 gap-3"
-                                   style={{ animation: 'fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.26s both' }}>
+                              <div className="space-y-3" style={{ animation: 'fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.26s both' }}>
+                                   <div className="grid grid-cols-2 gap-3">
+                                        <button
+                                             type="button"
+                                             onClick={() => setShowExpenseModal(true)}
+                                             className="flex items-center justify-center gap-2 py-3.5 rounded-2xl font-semibold text-sm bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-500/30 hover:opacity-90 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer"
+                                        >
+                                             <Icon path={ICONS.add_expense} className="size-4" />
+                                             Add Expense
+                                        </button>
+                                        <button type="button" className="flex items-center justify-center gap-2 py-3.5 rounded-2xl font-semibold text-sm bg-white border border-gray-100 text-gray-600 shadow-sm hover:shadow-md hover:border-violet-200 hover:text-violet-600 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer">
+                                             <Icon path={ICONS.settle} className="size-4" />
+                                             Settle Up
+                                        </button>
+                                   </div>
                                    <button
                                         type="button"
-                                        onClick={() => setShowExpenseModal(true)}
-                                        className="flex items-center justify-center gap-2 py-3.5 rounded-2xl font-semibold text-sm bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-500/30 hover:opacity-90 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer"
+                                        onClick={handleLeaveGroup}
+                                        className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl font-semibold text-sm bg-red-50 border border-red-100 text-red-500 shadow-sm hover:shadow-md hover:bg-red-100 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer"
                                    >
-                                        <Icon path={ICONS.add_expense} className="size-4" />
-                                        Add Expense
-                                   </button>
-                                   <button type="button" className="flex items-center justify-center gap-2 py-3.5 rounded-2xl font-semibold text-sm bg-white border border-gray-100 text-gray-600 shadow-sm hover:shadow-md hover:border-violet-200 hover:text-violet-600 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer">
-                                        <Icon path={ICONS.settle} className="size-4" />
-                                        Settle Up
+                                        <Icon path={ICONS.leave} className="size-4" />
+                                        Leave Group
                                    </button>
                               </div>
                          </div>

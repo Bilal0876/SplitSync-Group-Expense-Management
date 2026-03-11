@@ -87,6 +87,43 @@ export const removeMember = async (groupId: number, userId: number) => {
 };
 
 
+export const leaveGroup = async (groupId: number, userId: number) => {
+  const client = await db.pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    // 1. Remove the user from the group
+    const removeMemberQuery = `DELETE FROM group_members WHERE group_id = $1 AND user_id = $2 RETURNING *`;
+    const removeRes = await client.query(removeMemberQuery, [groupId, userId]);
+
+    if (removeRes.rowCount === 0) {
+      throw new Error("User is not a member of this group.");
+    }
+
+    // 2. Check if any members remain
+    const countQuery = `SELECT COUNT(*) FROM group_members WHERE group_id = $1`;
+    const countRes = await client.query(countQuery, [groupId]);
+    const memberCount = parseInt(countRes.rows[0].count);
+
+    // 3. If no members left, delete the group (cascades or manual delete of other related data)
+    // Assuming we might have foreign keys with ON DELETE CASCADE for expenses/settlements
+    if (memberCount === 0) {
+      const deleteGroupQuery = `DELETE FROM groups WHERE id = $1`;
+      await client.query(deleteGroupQuery, [groupId]);
+    }
+
+    await client.query('COMMIT');
+    return { groupDeleted: memberCount === 0 };
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+};
+
+
 export const isMember = async (groupId: number, userId: number): Promise<boolean> => {
   const query = `SELECT 1 FROM group_members WHERE group_id = $1 AND user_id = $2`;
   const res = await db.query(query, [groupId, userId]);

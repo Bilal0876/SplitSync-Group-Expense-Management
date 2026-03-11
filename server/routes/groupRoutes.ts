@@ -8,6 +8,7 @@ import {
      getGroupById,
      addMember,
      removeMember,
+     leaveGroup,
 } from '../controllers/groupController.ts';
 import {
      getExpensesByGroup,
@@ -58,6 +59,14 @@ router.delete(
     ],
     handleValidationErrors,
     removeMember
+);
+
+// DELETE /api/groups/:groupId/leave — Current user leaves the group
+router.delete(
+    '/:groupId/leave',
+    [param('groupId').isInt()],
+    handleValidationErrors,
+    leaveGroup
 );
 
 // GET /api/groups/:groupId/expenses — Get all expenses for a group

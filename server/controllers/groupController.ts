@@ -66,3 +66,14 @@ export const removeMember = asyncHandler(async (req: AuthRequest, res: Response)
     await GroupModel.removeMember(groupId, userId);
     res.status(200).json({ message: "Member removed successfully" });
 });
+
+export const leaveGroup = asyncHandler(async (req: AuthRequest, res: Response) => {
+    const groupId = parseInt(req.params.groupId as string);
+    const userId = req.user!.id;
+
+    const result = await GroupModel.leaveGroup(groupId, userId);
+    res.status(200).json({ 
+        message: result.groupDeleted ? "Left group and group deleted as no members remained." : "Successfully left the group.",
+        groupDeleted: result.groupDeleted
+    });
+});
