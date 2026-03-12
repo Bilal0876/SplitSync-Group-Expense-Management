@@ -36,7 +36,6 @@ const ActivityPage = () => {
     fetchData();
   }, []);
 
-  // Group activities by group name
   const groupedTasks = () => {
     if (!data) return {};
     const groups: { [key: string]: typeof data.recentActivity } = {};
@@ -54,14 +53,14 @@ const ActivityPage = () => {
     <div className="min-h-screen bg-gray-50/60 flex flex-col font-sans">
       <Header />
 
-      <main className="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 py-8">
+      <main className="flex-1 w-full max-w-5xl xl:max-w-7xl mx-auto px-4 sm:px-6 py-8">
         <div className="mb-8" style={{ animation: 'fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) both' }}>
           <h1 className="text-3xl font-black text-gray-900">Activity History</h1>
           <p className="text-sm text-gray-400 mt-1">Every transaction across all your expense circles.</p>
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-pulse">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 animate-pulse">
             {[1, 2, 3, 4].map(i => (
               <div key={i} className="h-64 bg-gray-100 rounded-[2.5rem]" />
             ))}
@@ -75,10 +74,10 @@ const ActivityPage = () => {
             <p className="text-gray-400 max-w-xs mx-auto">Activities will appear here once you start splitting expenses in your groups.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 items-start">
             {Object.entries(activityByGroup).map(([groupName, activities], idx) => (
-              <div 
-                key={groupName} 
+              <div
+                key={groupName}
                 className="bg-white border border-gray-100 rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300"
                 style={{ animation: `fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) ${idx * 0.1}s both` }}
               >
@@ -97,16 +96,15 @@ const ActivityPage = () => {
                 <div className="p-2">
                   <div className="space-y-1">
                     {activities.map((a, i) => (
-                      <div 
+                      <div
                         key={`${a.type}-${i}`}
                         className="flex items-center gap-4 px-4 py-3.5 hover:bg-gray-50/50 rounded-2xl transition-colors group"
                       >
-                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110 ${
-                          a.type === 'expense' ? 'bg-violet-50 text-violet-500' : 'bg-emerald-50 text-emerald-500'
-                        }`}>
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110 ${a.type === 'expense' ? 'bg-violet-50 text-violet-500' : 'bg-emerald-50 text-emerald-500'
+                          }`}>
                           <Icon path={a.type === 'expense' ? ICONS.add : ICONS.settle} className="size-4" />
                         </div>
-                        
+
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-extrabold text-gray-900 truncate">{a.title}</p>
                           <p className="text-[10px] text-gray-500 mt-0.5">
@@ -116,9 +114,8 @@ const ActivityPage = () => {
                         </div>
 
                         <div className="text-right">
-                          <p className={`text-sm font-black ${
-                            a.type === 'settlement' ? 'text-emerald-500' : 'text-gray-900'
-                          }`}>${a.amount.toFixed(2)}</p>
+                          <p className={`text-sm font-black ${a.type === 'settlement' ? 'text-emerald-500' : 'text-gray-900'
+                            }`}>${a.amount.toFixed(2)}</p>
                           <p className="text-[9px] font-bold text-gray-400 mt-0.5 uppercase tracking-widest">
                             {new Date(a.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                           </p>

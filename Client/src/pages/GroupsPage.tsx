@@ -54,7 +54,7 @@ const GroupsPage = () => {
     <div className="min-h-screen bg-gray-50/60 flex flex-col font-sans">
       <Header />
 
-      <main className="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 py-8">
+      <main className="flex-1 w-full max-w-5xl lg:max-w-4xl xl:max-w-7xl mx-auto px-4 sm:px-6 py-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10"
           style={{ animation: 'fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) both' }}>
           <div>
@@ -84,13 +84,16 @@ const GroupsPage = () => {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {[1, 2, 3, 4, 5, 6].map(i => (
               <div key={i} className="h-48 bg-gray-100 rounded-[2.5rem] animate-pulse" />
             ))}
           </div>
+
         ) : filteredGroups.length === 0 ? (
+
           <div className="bg-white border border-gray-100 rounded-[2.5rem] p-16 text-center shadow-sm">
+            {/* when no group found */}
             <div className="w-20 h-20 mx-auto mb-6 rounded-3xl bg-gray-50 flex items-center justify-center text-gray-300">
               <Icon path={ICONS.empty} className="size-10" />
             </div>
@@ -100,14 +103,17 @@ const GroupsPage = () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredGroups.map((g, i) => (
+
               <div
                 key={g.id}
                 onClick={() => navigate(`/groups/${g.id}`)}
                 className="bg-white border border-gray-100 rounded-[2.5rem] p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
                 style={{ animation: `fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) ${0.15 + i * 0.05}s both` }}
               >
+                {/* when group found */}
                 <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${GROUP_COLORS[i % GROUP_COLORS.length]} flex items-center justify-center shadow-lg mb-6 group-hover:scale-110 transition-transform duration-500`}>
                   <Icon path={ICONS.groups} className="size-7 text-white" />
                 </div>

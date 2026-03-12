@@ -1,10 +1,14 @@
-import db from '../config/db.ts';
+import prisma from '../config/prisma.ts';
 
 export const createExpense = async (groupId: number, payerId: number, description: string, amount: number) => {
-     const querytext = `INSERT INTO expenses (group_id, payer_id, description, amount) VALUES ($1, $2, $3, $4) RETURNING *`;
-     const values = [groupId, payerId, description, amount];
-     const result = await db.query(querytext, values);
-     return result.rows[0];
+     return await prisma.expenses.create({
+          data: {
+               group_id: groupId,
+               payer_id: payerId,
+               description: description,
+               amount: amount,
+          }
+     });
 };
 
 
@@ -13,84 +17,73 @@ export const createSplits = async (
      members: number[],
      totalAmount: number
 ) => {
-     const client = await db.pool.connect();
-
-     try {
-          await client.query('BEGIN');
-
+     return await prisma.$transaction(async (tx) => {
           const count = members.length;
           const baseShare = Math.floor((totalAmount / count) * 100) / 100;
 
           const totalBaseShares = baseShare * count;
           const remainder = Math.round((totalAmount - totalBaseShares) * 100) / 100;
 
-          const insertPromises = members.map((userId, index) => {
+          const splits = members.map((userId, index) => {
                const finalShare = index === 0
                     ? (baseShare + remainder).toFixed(2)
                     : baseShare.toFixed(2);
 
-               return client.query(
-                    'INSERT INTO expense_splits (expense_id, user_id, share) VALUES ($1, $2, $3)',
-                    [expenseId, userId, finalShare]
-               );
+               return tx.expense_splits.create({
+                    data: {
+                         expense_id: expenseId,
+                         user_id: userId,
+                         share: finalShare
+                    }
+               });
           });
 
-          await Promise.all(insertPromises);
-          await client.query('COMMIT');
+          await Promise.all(splits);
 
           return { success: true, baseShare, remainder };
-     } catch (error) {
-          await client.query('ROLLBACK');
-          throw error;
-     } finally {
-          client.release();
-     }
+     });
 };
 
 
 export const getExpensesByGroup = async (groupId: number) => {
-     const query = `
-    SELECT 
-      e.id, 
-      e.description, 
-      e.amount, 
-      e.created_at, 
-      u.username AS payer_name,
-      e.payer_id
-    FROM expenses e
-    JOIN users u ON e.payer_id = u.id
-    WHERE e.group_id = $1
-    ORDER BY e.created_at DESC
-  `;
+     const res = await prisma.expenses.findMany({
+          where: { group_id: groupId },
+          include: {
+               users: {
+                    select: { username: true }
+               }
+          },
+          orderBy: { created_at: 'desc' }
+     });
 
-     const res = await db.query(query, [groupId]);
-     return res.rows;
+     // Remap to match previous raw SQL results (adding payer_name)
+     return res.map(e => ({
+          ...e,
+          payer_name: e.users?.username
+     }));
 };
 
 
 export const updateExpense = async (
      expenseId: number,
-     description: string, // Schema uses 'description', not 'title'
+     description: string,
      amount: number,
-     memberIds: number[] // Required to re-calculate and re-insert splits
+     memberIds: number[]
 ) => {
-     const client = await db.pool.connect();
-
-     try {
-          await client.query('BEGIN');
-
+     return await prisma.$transaction(async (tx) => {
           // 1. Update the main expense record
-          const updateRes = await client.query(
-               'UPDATE expenses SET description = $1, amount = $2 WHERE id = $3 RETURNING *',
-               [description, amount, expenseId]
-          );
-
-          if (updateRes.rowCount === 0) {
-               throw new Error('Expense not found');
-          }
+          const updatedExpense = await tx.expenses.update({
+               where: { id: expenseId },
+               data: {
+                    description: description,
+                    amount: amount,
+               }
+          });
 
           // 2. Wipe old splits
-          await client.query('DELETE FROM expense_splits WHERE expense_id = $1', [expenseId]);
+          await tx.expense_splits.deleteMany({
+               where: { expense_id: expenseId }
+          });
 
           // 3. Calculate new splits with rounding logic
           const count = memberIds.length;
@@ -104,26 +97,25 @@ export const updateExpense = async (
                     ? (baseShare + remainder).toFixed(2)
                     : baseShare.toFixed(2);
 
-               await client.query(
-                    'INSERT INTO expense_splits (expense_id, user_id, share) VALUES ($1, $2, $3)',
-                    [expenseId, memberIds[i], finalShare]
-               );
+               await tx.expense_splits.create({
+                    data: {
+                         expense_id: expenseId,
+                         user_id: memberIds[i],
+                         share: finalShare
+                    }
+               });
           }
 
-          await client.query('COMMIT');
-          return updateRes.rows[0];
-     } catch (error) {
-          await client.query('ROLLBACK');
-          throw error;
-     } finally {
-          client.release();
-     }
+          return updatedExpense;
+     });
 };
 
 
 export const deleteExpense = async (expenseId: number): Promise<boolean> => {
-     const query = `DELETE FROM expenses WHERE id = $1 RETURNING id`;
-     const result = await db.query(query, [expenseId]);
+     const result = await prisma.expenses.delete({
+          where: { id: expenseId },
+          select: { id: true }
+     });
 
-     return (result.rowCount ?? 0) > 0;
+     return !!result.id;
 };

@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react';
 import api from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 
-// ── Types ────────────────────────────────────────────────────────────────────
 export interface Expense {
      id: number;
      title: string;
@@ -13,7 +12,6 @@ export interface Expense {
      split_count?: number;
 }
 
-// ── Icon helper ──────────────────────────────────────────────────────────────
 const Icon = ({ path, className = 'size-5' }: { path: string; className?: string }) => (
      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
           strokeWidth={1.5} stroke="currentColor" className={className}>
@@ -39,18 +37,14 @@ const AVATAR_GRADIENTS = [
      'from-violet-500 to-purple-600',
      'from-indigo-500 to-blue-600',
      'from-purple-500 to-fuchsia-600',
-     'from-blue-500 to-cyan-500',
      'from-rose-500 to-pink-600',
-     'from-amber-500 to-orange-500',
-     'from-emerald-500 to-teal-600',
+     'from-amber-500 to-orange-600'
 ];
 
 const getGradient = (name: string) =>
      AVATAR_GRADIENTS[name.charCodeAt(0) % AVATAR_GRADIENTS.length];
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// EDIT EXPENSE MODAL — Exported so it can be rendered at page root level
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 interface EditExpenseModalProps {
      expense: Expense;
      onClose: () => void;
@@ -179,9 +173,7 @@ export const EditExpenseModal = ({ expense, onClose, onSuccess }: EditExpenseMod
      );
 };
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// DELETE CONFIRMATION MODAL — Exported so it can be rendered at page root level
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 interface DeleteConfirmModalProps {
      expense: Expense;
      onClose: () => void;
@@ -254,9 +246,7 @@ export const DeleteConfirmModal = ({ expense, onClose, onSuccess }: DeleteConfir
      );
 };
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// EXPENSE CARD — Just the row. Modals are rendered at page level.
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 interface ExpenseCardProps {
      expense: Expense;
      index: number;

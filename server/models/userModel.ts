@@ -1,21 +1,34 @@
-import db from '../config/db.ts';
+import prisma from '../config/prisma.ts';
 
 export interface User {
      id: number;
      username: string;
      email: string;
 }
+
 export const createUser = async (name: string, email: string, hash: string) => {
-     const querytext = `INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3) RETURNING id, username, email;`;
-     const values = [name, email, hash];
-     const result = await db.query(querytext, values);
-     return result.rows[0];
+     return await prisma.users.create({
+          data: {
+               username: name,
+               email: email,
+               password_hash: hash,
+          },
+          select: {
+               id: true,
+               username: true,
+               email: true,
+          }
+     });
 }
 
 export const findByemail = async (email: string) => {
-     const querytext = `SELECT * FROM users WHERE LOWER(email) = LOWER($1)`;
-     const values = [email];
-     const result = await db.query(querytext, values);
-     return result.rows[0];
+     return await prisma.users.findFirst({
+          where: {
+               email: {
+                    equals: email,
+                    mode: 'insensitive'
+               }
+          }
+     });
 }
 

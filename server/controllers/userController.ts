@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/authMiddleware.ts';
-import db from '../config/db.ts';
+import prisma from '../config/prisma.ts';
 import * as GroupModel from '../models/groupModel.ts';
 import * as SettlementModel from '../models/settlementModel.ts';
 import * as ExpenseModel from '../models/expenseModel.ts';
@@ -24,104 +24,101 @@ export const getDashboardData = asyncHandler(async (req: AuthRequest, res: Respo
     }
 
     // 2. Fetch data for Net Balance calculation
-    // Total Paid (as payer)
-    const totalPaidRes = await db.query(
-        'SELECT SUM(amount)::float FROM expenses WHERE payer_id = $1',
-        [userId]
-    );
-    const totalPaid = totalPaidRes.rows[0].sum || 0;
+    const [totalPaid, totalOwed, totalSent, totalReceived] = await Promise.all([
+        prisma.expenses.aggregate({
+            _sum: { amount: true },
+            where: { payer_id: userId }
+        }),
+        prisma.expense_splits.aggregate({
+            _sum: { share: true },
+            where: { user_id: userId }
+        }),
+        prisma.settlements.aggregate({
+            _sum: { amount: true },
+            where: { sender_id: userId }
+        }),
+        prisma.settlements.aggregate({
+            _sum: { amount: true },
+            where: { receiver_id: userId }
+        })
+    ]);
 
-    // Total Owed (from splits)
-    const totalOwedRes = await db.query(
-        'SELECT SUM(share)::float FROM expense_splits WHERE user_id = $1',
-        [userId]
-    );
-    const totalOwed = totalOwedRes.rows[0].sum || 0;
+    const paid = Number(totalPaid._sum.amount || 0);
+    const owed = Number(totalOwed._sum.share || 0);
+    const sent = Number(totalSent._sum.amount || 0);
+    const received = Number(totalReceived._sum.amount || 0);
 
-    // Total Sent in settlements
-    const totalSentRes = await db.query(
-        'SELECT SUM(amount)::float FROM settlements WHERE sender_id = $1',
-        [userId]
-    );
-    const totalSent = totalSentRes.rows[0].sum || 0;
+    const netBalance = paid - owed + sent - received;
 
-    // Total Received in settlements
-    const totalReceivedRes = await db.query(
-        'SELECT SUM(amount)::float FROM settlements WHERE receiver_id = $1',
-        [userId]
-    );
-    const totalReceived = totalReceivedRes.rows[0].sum || 0;
+    // 3. Fetch Recent Activity
+    const [latestExpenses, latestSettlements] = await Promise.all([
+        prisma.expenses.findMany({
+            where: { group_id: { in: groupIds } },
+            take: 5,
+            orderBy: { created_at: 'desc' },
+            include: {
+                users: { select: { username: true } },
+                groups: { select: { name: true } }
+            }
+        }),
+        prisma.settlements.findMany({
+            where: { group_id: { in: groupIds } },
+            take: 5,
+            orderBy: { settled_at: 'desc' },
+            include: {
+                users_settlements_sender_idTousers: { select: { username: true } },
+                groups: { select: { name: true } }
+            }
+        })
+    ]);
 
-    const netBalance = totalPaid - totalOwed + totalSent - totalReceived;
+    const recentActivity = [
+        ...latestExpenses.map(e => ({
+            type: 'expense',
+            title: e.description,
+            amount: Number(e.amount),
+            created_at: e.created_at,
+            paid_by_username: e.users?.username,
+            paid_by_id: e.payer_id,
+            group_name: e.groups?.name
+        })),
+        ...latestSettlements.map(s => ({
+            type: 'settlement',
+            title: 'Settlement',
+            amount: Number(s.amount),
+            created_at: s.settled_at,
+            paid_by_username: s.users_settlements_sender_idTousers?.username,
+            paid_by_id: s.sender_id,
+            group_name: s.groups?.name
+        }))
+    ].sort((a, b) => new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime()).slice(0, 5);
 
-    // 3. Fetch Recent Activity (Latest 5 expenses or settlements across all groups)
-    const activityQuery = `
-        (
-            SELECT 
-                'expense' as type, 
-                description as title, 
-                e.amount::float, 
-                e.created_at, 
-                u.username as paid_by_username,
-                payer_id as paid_by_id,
-                g.name as group_name
-            FROM expenses e
-            JOIN users u ON e.payer_id = u.id
-            JOIN groups g ON e.group_id = g.id
-            WHERE e.group_id = ANY($1)
-        )
-        UNION ALL
-        (
-            SELECT 
-                'settlement' as type, 
-                'Settlement' as title, 
-                s.amount::float, 
-                settled_at as created_at, 
-                u.username as paid_by_username,
-                sender_id as paid_by_id,
-                g.name as group_name
-            FROM settlements s
-            JOIN users u ON s.sender_id = u.id
-            JOIN groups g ON s.group_id = g.id
-            WHERE s.group_id = ANY($1)
-        )
-        ORDER BY created_at DESC
-        LIMIT 5
-    `;
-    const activityRes = await db.query(activityQuery, [groupIds]);
-    const recentActivity = activityRes.rows;
-
-    // 4. Summarized Balances (Aggregated debt/credit across all groups)
+    // 4. Summarized Balances
     const allTransactions: any[] = [];
-    
+
     for (const group of groups) {
         const expenses = await ExpenseModel.getExpensesByGroup(group.id);
-        const expenseIds = expenses.map(e => e.id);
+        const expenseIds = expenses.map((e: any) => e.id);
         let splits: any[] = [];
         if (expenseIds.length > 0) {
-            const splitRes = await db.query(
-                'SELECT * FROM expense_splits WHERE expense_id = ANY($1)',
-                [expenseIds]
-            );
-            splits = splitRes.rows;
+            splits = await prisma.expense_splits.findMany({
+                where: { expense_id: { in: expenseIds } }
+            });
         }
         const settlements = await SettlementModel.getSettlements(group.id);
         const groupDetails = await GroupModel.getGroupById(group.id);
-        
+
         if (groupDetails && groupDetails.members) {
             const groupTransactions = calculateBalancesFromData(expenses, splits, groupDetails.members, settlements);
             allTransactions.push(...groupTransactions);
         }
     }
 
-    // Final merging logic:
     const finalBalancesMap: Record<number, number> = {};
     allTransactions.forEach(tx => {
         if (tx.from.userId === userId) {
-            // I owe tx.to.userId
             finalBalancesMap[tx.to.userId] = (finalBalancesMap[tx.to.userId] || 0) - tx.amount;
         } else if (tx.to.userId === userId) {
-            // tx.from.userId owes me
             finalBalancesMap[tx.from.userId] = (finalBalancesMap[tx.from.userId] || 0) + tx.amount;
         }
     });
@@ -132,7 +129,6 @@ export const getDashboardData = asyncHandler(async (req: AuthRequest, res: Respo
         const amount = Math.abs(net);
         if (amount < 0.01) continue;
 
-        // Find username from transactions
         const tx = allTransactions.find(t => t.from.userId === otherId || t.to.userId === otherId);
         const username = tx.from.userId === otherId ? tx.from.username : tx.to.username;
 

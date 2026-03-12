@@ -1,133 +1,165 @@
-import db from '../config/db.ts';
+import prisma from '../config/prisma.ts';
 
 export interface Group {
   id: number;
   name: string;
   created_at: Date;
+  created_by: number | null;
 }
 
-export const createGroup = async (name: string, userId: number): Promise<Group> => {
-  const client = await db.pool.connect();
-
-  try {
-    await client.query('BEGIN');
-
+export const createGroup = async (name: string, userId: number) => {
+  return await prisma.$transaction(async (tx) => {
     // 1. Insert into groups
-    const groupQuery = `INSERT INTO groups (name) VALUES ($1) RETURNING *`;
-    const groupRes = await client.query(groupQuery, [name]);
-    const newGroup: Group = groupRes.rows[0];
+    const newGroup = await tx.groups.create({
+      data: { 
+        name: name,
+        created_by: userId
+      } as any
+    });
 
     // 2. Insert creator into group_members
-    const memberQuery = `INSERT INTO group_members (group_id, user_id) VALUES ($1, $2)`;
-    await client.query(memberQuery, [newGroup.id, userId]);
+    await tx.group_members.create({
+      data: {
+        group_id: newGroup.id,
+        user_id: userId
+      }
+    });
 
-    await client.query('COMMIT');
     return newGroup;
-  } catch (error) {
-    await client.query('ROLLBACK');
-    throw error;
-  } finally {
-    // Always release the client back to the pool
-    client.release();
-  }
+  });
 };
 
 
 export const getGroupsByUser = async (userId: number) => {
-  const query = `
-    SELECT g.*, COUNT(gm_all.user_id)::int as member_count
-    FROM groups g
-    JOIN group_members gm_user ON g.id = gm_user.group_id
-    JOIN group_members gm_all ON g.id = gm_all.group_id
-    WHERE gm_user.user_id = $1
-    GROUP BY g.id;
-  `;
-  const res = await db.query(query, [userId]);
-  return res.rows;
+  const userGroups = await prisma.groups.findMany({
+    where: {
+      group_members: {
+        some: { user_id: userId }
+      }
+    },
+    include: {
+      _count: {
+        select: { group_members: true }
+      }
+    }
+  });
+
+  return userGroups.map(g => ({
+    ...g,
+    member_count: g._count.group_members
+  }));
 };
 
 
 export const getGroupById = async (groupId: number) => {
-  const query = `
-    SELECT 
-      g.id, g.name, g.created_at,
-      json_agg(json_build_object('id', u.id, 'username', u.username, 'email', u.email)) as members
-    FROM groups g
-    JOIN group_members gm ON g.id = gm.group_id
-    JOIN users u ON gm.user_id = u.id
-    WHERE g.id = $1
-    GROUP BY g.id;
-  `;
-  const res = await db.query(query, [groupId]);
-  return res.rows[0];
+  const group = await prisma.groups.findUnique({
+    where: { id: groupId },
+    include: {
+      group_members: {
+        include: {
+          users: {
+            select: { id: true, username: true, email: true }
+          }
+        }
+      }
+    }
+  });
+
+  if (!group) return null;
+
+  const g = group as any;
+
+  // Remap to match previous raw SQL results (members as an array of user objects)
+  return {
+    id: g.id,
+    name: g.name,
+    created_at: g.created_at,
+    created_by: g.created_by,
+    members: g.group_members.map((gm: any) => gm.users)
+  };
 };
 
 
 export const addMember = async (groupId: number, userId: number) => {
-  const query = `
-    INSERT INTO group_members (group_id, user_id) 
-    VALUES ($1, $2) 
-    ON CONFLICT (group_id, user_id) DO NOTHING
-  `;
-  await db.query(query, [groupId, userId]);
+  await prisma.group_members.upsert({
+    where: {
+      group_id_user_id: {
+        group_id: groupId,
+        user_id: userId
+      }
+    },
+    update: {}, // DO NOTHING
+    create: {
+      group_id: groupId,
+      user_id: userId
+    }
+  });
 };
 
 
 export const removeMember = async (groupId: number, userId: number) => {
-  const query = `
-    DELETE FROM group_members 
-    WHERE group_id = $1 AND user_id = $2
-    AND (SELECT COUNT(*) FROM group_members WHERE group_id = $1) > 1
-    RETURNING *;
-  `;
-  const res = await db.query(query, [groupId, userId]);
-  if (res.rowCount === 0) {
-    throw new Error("Cannot remove member: either user is not in group or they are the last member.");
-  }
+  return await prisma.$transaction(async (tx) => {
+    const memberCount = await tx.group_members.count({
+      where: { group_id: groupId }
+    });
+
+    if (memberCount <= 1) {
+      throw new Error("Cannot remove member: they are the last member.");
+    }
+
+    const deleteRes = await tx.group_members.deleteMany({
+      where: {
+        group_id: groupId,
+        user_id: userId
+      }
+    });
+
+    if (deleteRes.count === 0) {
+      throw new Error("Cannot remove member: user is not in group.");
+    }
+  });
 };
 
 
 export const leaveGroup = async (groupId: number, userId: number) => {
-  const client = await db.pool.connect();
-
-  try {
-    await client.query('BEGIN');
-
+  return await prisma.$transaction(async (tx) => {
     // 1. Remove the user from the group
-    const removeMemberQuery = `DELETE FROM group_members WHERE group_id = $1 AND user_id = $2 RETURNING *`;
-    const removeRes = await client.query(removeMemberQuery, [groupId, userId]);
+    const deleteRes = await tx.group_members.deleteMany({
+      where: {
+        group_id: groupId,
+        user_id: userId
+      }
+    });
 
-    if (removeRes.rowCount === 0) {
+    if (deleteRes.count === 0) {
       throw new Error("User is not a member of this group.");
     }
 
     // 2. Check if any members remain
-    const countQuery = `SELECT COUNT(*) FROM group_members WHERE group_id = $1`;
-    const countRes = await client.query(countQuery, [groupId]);
-    const memberCount = parseInt(countRes.rows[0].count);
+    const memberCount = await tx.group_members.count({
+      where: { group_id: groupId }
+    });
 
-    // 3. If no members left, delete the group (cascades or manual delete of other related data)
-    // Assuming we might have foreign keys with ON DELETE CASCADE for expenses/settlements
+    // 3. If no members left, delete the group
     if (memberCount === 0) {
-      const deleteGroupQuery = `DELETE FROM groups WHERE id = $1`;
-      await client.query(deleteGroupQuery, [groupId]);
+      await tx.groups.delete({
+        where: { id: groupId }
+      });
     }
 
-    await client.query('COMMIT');
     return { groupDeleted: memberCount === 0 };
-  } catch (error) {
-    await client.query('ROLLBACK');
-    throw error;
-  } finally {
-    client.release();
-  }
+  });
 };
 
 
 export const isMember = async (groupId: number, userId: number): Promise<boolean> => {
-  const query = `SELECT 1 FROM group_members WHERE group_id = $1 AND user_id = $2`;
-  const res = await db.query(query, [groupId, userId]);
-  return (res.rowCount ?? 0) > 0;
+  const count = await prisma.group_members.count({
+    where: {
+      group_id: groupId,
+      user_id: userId
+    }
+  });
+  return count > 0;
 };
 
 

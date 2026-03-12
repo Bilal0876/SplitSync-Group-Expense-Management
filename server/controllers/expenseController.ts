@@ -1,4 +1,4 @@
-import db from '../config/db.ts';
+import prisma from '../config/prisma.ts';
 import * as ExpenseModel from '../models/expenseModel.ts';
 import * as GroupModel from '../models/groupModel.ts';
 import asyncHandler from '../utils/asyncHandler.ts';
@@ -16,101 +16,103 @@ export const createExpense = asyncHandler(async (req: any, res: any) => {
           return res.status(400).json({ error: "Missing required fields" });
      }
 
-     const client = await db.pool.connect();
+     const gId = Number(groupId);
+     const pId = Number(payerId);
 
-     try {
-          const isMember = await GroupModel.isMember(groupId, payerId);
-          if (!isMember) {
-               return res.status(403).json({ error: "Unauthorized: Payer is not a group member" });
-          }
+     const isMember = await GroupModel.isMember(gId, pId);
+     if (!isMember) {
+          return res.status(403).json({ error: "Unauthorized: Payer is not a group member" });
+     }
 
-          const groupData = await GroupModel.getGroupById(groupId);
-          if (!groupData) {
-               return res.status(404).json({ error: "Group not found" });
-          }
-          const members = groupData.members.map((m: any) => m.id);
+     const groupData = await GroupModel.getGroupById(gId);
+     if (!groupData) {
+          return res.status(404).json({ error: "Group not found" });
+     }
+     const members = groupData.members.map((m: any) => m.id);
 
-          await client.query('BEGIN');
-
-          const expenseRes = await client.query(
-               `INSERT INTO expenses (group_id, payer_id, description, amount) 
-        VALUES ($1, $2, $3, $4) RETURNING *`,
-               [groupId, payerId, description, amount]
-          );
-          const newExpense = expenseRes.rows[0];
+     const result = await prisma.$transaction(async (tx) => {
+          const newExpense = await tx.expenses.create({
+               data: {
+                    group_id: gId,
+                    payer_id: pId,
+                    description: description,
+                    amount: amount,
+               }
+          });
 
           const count = members.length;
           const baseShare = Math.floor((amount / count) * 100) / 100;
           const remainder = Math.round((amount - (baseShare * count)) * 100) / 100;
 
-          for (let i = 0; i < members.length; i++) {
+          const splitPromises = members.map((memberId: number, i: number) => {
                const finalShare = (i === 0) ? (baseShare + remainder) : baseShare;
-
-               await client.query(
-                    `INSERT INTO expense_splits (expense_id, user_id, share) VALUES ($1, $2, $3)`,
-                    [newExpense.id, members[i], finalShare]
-               );
-          }
-
-          await client.query('COMMIT');
-
-          res.status(201).json({
-               id: newExpense.id,
-               title: newExpense.description,
-               amount: newExpense.amount,
-               paid_by: newExpense.payer_id,
-               paid_by_username: req.user?.username ?? 'You',
-               created_at: newExpense.created_at,
-               split_count: count,
+               return tx.expense_splits.create({
+                    data: {
+                         expense_id: newExpense.id,
+                         user_id: memberId,
+                         share: finalShare
+                    }
+               });
           });
 
-     } catch (error) {
-          await client.query('ROLLBACK');
-          throw error; // Let asyncHandler handle it
-     } finally {
-          client.release();
-     }
+          await Promise.all(splitPromises);
+
+          return { newExpense, count };
+     });
+
+     res.status(201).json({
+          id: result.newExpense.id,
+          title: result.newExpense.description,
+          amount: result.newExpense.amount,
+          paid_by: result.newExpense.payer_id,
+          paid_by_username: req.user?.username ?? 'You',
+          created_at: result.newExpense.created_at,
+          split_count: result.count,
+     });
 });
 
 export const getExpensesByGroup = asyncHandler(async (req: any, res: any) => {
      const { groupId } = req.params;
      const userId = req.user.id;
+     const gId = Number(groupId);
 
-     const memberCheck = await db.query(
-          'SELECT 1 FROM group_members WHERE group_id = $1 AND user_id = $2',
-          [groupId, userId]
-     );
-
-     if (memberCheck.rowCount === 0) {
+     const isMember = await GroupModel.isMember(gId, userId);
+     if (!isMember) {
           return res.status(403).json({ error: "Access denied: You are not a member of this group" });
      }
 
-     const query = `
-      SELECT 
-        e.id,
-        e.description AS title,
-        e.amount, 
-        e.payer_id AS paid_by,
-        u.username AS paid_by_username,
-        e.created_at,
-        (SELECT COUNT(*) FROM expense_splits es WHERE es.expense_id = e.id)::int AS split_count
-      FROM expenses e
-      JOIN users u ON e.payer_id = u.id
-      WHERE e.group_id = $1
-      ORDER BY e.created_at DESC
-    `;
+     const expenses = await prisma.expenses.findMany({
+          where: { group_id: gId },
+          include: {
+               users: { select: { username: true } },
+               _count: { select: { expense_splits: true } }
+          },
+          orderBy: { created_at: 'desc' }
+     });
 
-     const result = await db.query(query, [groupId]);
-     res.status(200).json(result.rows);
+     const formattedExpenses = expenses.map(e => ({
+          id: e.id,
+          title: e.description,
+          amount: e.amount,
+          paid_by: e.payer_id,
+          paid_by_username: e.users?.username,
+          created_at: e.created_at,
+          split_count: e._count.expense_splits
+     }));
+
+     res.status(200).json(formattedExpenses);
 });
 
 export const updateExpense = asyncHandler(async (req: any, res: any) => {
      const { id } = req.params;
      const { description, amount } = req.body;
      const userId = req.user.id;
+     const expenseId = Number(id);
 
-     const expenseRes = await db.query('SELECT payer_id, group_id FROM expenses WHERE id = $1', [id]);
-     const expense = expenseRes.rows[0];
+     const expense = await prisma.expenses.findUnique({
+          where: { id: expenseId },
+          select: { payer_id: true, group_id: true }
+     });
 
      if (!expense) return res.status(404).json({ error: "Not found" });
 
@@ -118,10 +120,13 @@ export const updateExpense = asyncHandler(async (req: any, res: any) => {
           return res.status(403).json({ error: "Forbidden: You are not the payer" });
      }
 
-     const membersRes = await db.query('SELECT user_id FROM group_members WHERE group_id = $1', [expense.group_id]);
-     const memberIds = membersRes.rows.map(m => m.user_id);
+     const members = await prisma.group_members.findMany({
+          where: { group_id: expense.group_id! },
+          select: { user_id: true }
+     });
+     const memberIds = members.map(m => m.user_id);
 
-     const updated = await ExpenseModel.updateExpense(Number(id), description, amount, memberIds);
+     const updated = await ExpenseModel.updateExpense(expenseId, description, amount, memberIds);
 
      res.status(200).json(updated);
 });
@@ -129,21 +134,22 @@ export const updateExpense = asyncHandler(async (req: any, res: any) => {
 export const deleteExpense = asyncHandler(async (req: any, res: any) => {
      const { id } = req.params;
      const userId = req.user.id;
+     const expenseId = Number(id);
 
-     const expenseRes = await db.query(
-          'SELECT payer_id FROM expenses WHERE id = $1',
-          [id]
-     );
+     const expense = await prisma.expenses.findUnique({
+          where: { id: expenseId },
+          select: { payer_id: true }
+     });
 
-     if (expenseRes.rowCount === 0) {
+     if (!expense) {
           return res.status(404).json({ error: "Expense not found" });
      }
 
-     if (expenseRes.rows[0].payer_id !== userId) {
+     if (expense.payer_id !== userId) {
           return res.status(403).json({ error: "Unauthorized: Only the payer can delete this expense" });
      }
 
-     const deleted = await ExpenseModel.deleteExpense(Number(id));
+     const deleted = await ExpenseModel.deleteExpense(expenseId);
 
      if (!deleted) {
           return res.status(400).json({ error: "Delete failed" });

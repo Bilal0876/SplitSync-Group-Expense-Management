@@ -18,6 +18,7 @@ interface Group {
      name: string;
      created_at: string;
      members: Member[];
+     created_by: number | null;
 }
 
 const Icon = ({ path, className = 'size-5' }: { path: string; className?: string }) => (
@@ -184,7 +185,7 @@ const AddExpenseModal = ({ groupId, onClose, onSuccess }: AddExpenseModalProps) 
                                    ref={titleRef}
                                    id="expense-title"
                                    type="text"
-                                   placeholder="e.g. Dinner at Nobu, Uber rideâ€¦"
+                                   placeholder="e.g. Dinner at Nobu, Uber"
                                    value={title}
                                    onChange={e => { setTitle(e.target.value); setError(''); }}
                                    required
@@ -312,12 +313,20 @@ const GroupDetail = () => {
 
      const handleAddMember = async (e: React.FormEvent) => {
           e.preventDefault();
-          if (!memberEmail.trim()) return;
+          const email = memberEmail.trim();
+          if (!email) return;
+
+          // Frontend validation: Check if user already exists in group members
+          if (group?.members.some(m => m.email.toLowerCase() === email.toLowerCase())) {
+               setAddMemberError('User is already in this group.');
+               return;
+          }
+
           setAddingMember(true);
           setAddMemberError('');
           setAddMemberSuccess(false);
           try {
-               const res = await api.post(`/groups/${id}/members`, { email: memberEmail.trim() });
+               const res = await api.post(`/groups/${id}/members`, { email });
                const newMember: Member = res.data.member;
                setGroup(prev => prev ? { ...prev, members: [...prev.members, newMember] } : prev);
                setMemberEmail('');
@@ -694,13 +703,15 @@ const GroupDetail = () => {
                                                             <p className="text-sm font-semibold text-gray-800 truncate">{member.username}</p>
                                                             <p className="text-xs text-gray-400 truncate">{member.email}</p>
                                                        </div>
-                                                       <button
-                                                            type="button"
-                                                            onClick={() => handleRemoveMember(member.id)}
-                                                            title="Remove member"
-                                                            className="opacity-0 group-hover:opacity-100 w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center text-gray-300 hover:text-red-400 transition-all cursor-pointer">
-                                                            <Icon path={ICONS.trash} className="size-3.5" />
-                                                       </button>
+                                                        {group?.created_by === (JSON.parse(localStorage.getItem('user') || '{}').id) && (
+                                                             <button
+                                                                  type="button"
+                                                                  onClick={() => handleRemoveMember(member.id)}
+                                                                  title="Remove member"
+                                                                  className="opacity-0 group-hover:opacity-100 w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center text-gray-300 hover:text-red-400 transition-all cursor-pointer">
+                                                                  <Icon path={ICONS.trash} className="size-3.5" />
+                                                             </button>
+                                                        )}
                                                   </li>
                                              ))}
                                         </ul>

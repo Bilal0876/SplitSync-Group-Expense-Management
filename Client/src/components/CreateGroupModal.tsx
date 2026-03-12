@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { createGroup, type Group } from '../services/groupServices';
 
-// ── tiny icon helpers ────────────────────────────────────────────────────────
+
 const Icon = ({ path, className = 'size-5' }: { path: string; className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
     strokeWidth={1.5} stroke="currentColor" className={className}>

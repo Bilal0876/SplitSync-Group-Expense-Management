@@ -39,7 +39,6 @@ const AuthPage = () => {
       }
       navigate('/dashboard');
     } catch (err: unknown) {
-      // Extract the server error message if available
       const axiosError = err as { response?: { data?: { message?: string } } };
       const serverMsg = axiosError?.response?.data?.message;
       setError(serverMsg || (err instanceof Error ? err.message : 'Something went wrong.'));
@@ -89,7 +88,7 @@ const AuthPage = () => {
                 <input
                   id="name"
                   type="text"
-                  placeholder="John Doe"
+                  placeholder="Bilal Khadim"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
@@ -103,7 +102,7 @@ const AuthPage = () => {
               <label htmlFor="email" className="text-xs font-semibold text-gray-500 uppercase tracking-widest">
                 Email
               </label>
-              <input id="email" type="email" placeholder="you@example.com" value={email}
+              <input id="email" type="email" placeholder="you@email.com" value={email}
                 onChange={(e) => setEmail(e.target.value)} required autoComplete="email"
                 className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 placeholder-gray-300 text-sm outline-none focus:border-violet-500 focus:bg-violet-50 transition-all"
               />
