@@ -39,13 +39,13 @@ const StatCard = ({ label, value, sub, icon, delay = '0ms' }: {
 }) => (
   <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-200"
     style={{ animation: `fadeUp 0.55s cubic-bezier(0.16,1,0.3,1) ${delay} both` }}>
-    <div className="flex items-start justify-between mb-4">
+    <div className="flex items-center justify-between mb-4">
       <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest">{label}</span>
       <span className="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center text-violet-500">
-        <Icon path={icon} className="size-4" />
+        <Icon path={icon} className="size-4 " />
       </span>
     </div>
-    <p className="text-2xl font-extrabold text-gray-900 tracking-tight">{value}</p>
+    <p className="font-extrabold text-xl lg:text-lg xl:text-2xl text-gray-900 tracking-tight">{value}</p>
     <p className="text-xs text-gray-400 mt-1">{sub}</p>
   </div>
 );
@@ -129,9 +129,9 @@ const Dashboard = () => {
           <StatCard label="Net Balance" value={`${netBalance >= 0 ? '+' : '-'}$${Math.abs(netBalance).toFixed(2)}`}
             sub={netBalance >= 0 ? 'Others owe you' : 'You owe others'} icon={ICONS.balance} delay="0.08s" />
           <StatCard label="Active Groups" value={String(groupsCount)}
-            sub={`Total groups joined`} icon={ICONS.groups} delay="0.12s" />
-          <StatCard label="This Month" value="$0.00" sub="Not available" icon={ICONS.activity} delay="0.16s" />
-          <StatCard label="Settled" value="0" sub="Summarized" icon={ICONS.check} delay="0.20s" />
+            sub={`Total groups`} icon={ICONS.groups} delay="0.12s" />
+          <StatCard label="This Month" value={`$${(dashboardData?.monthlySpent ?? 0).toFixed(2)}`} sub="Total spent" icon={ICONS.activity} delay="0.16s" />
+          <StatCard label="Settled" value={`$${(dashboardData?.totalSettled ?? 0).toFixed(2)}`} sub="You repaid" icon={ICONS.check} delay="0.20s" />
         </div>
 
         {/*Balance and Groups */}
@@ -142,7 +142,7 @@ const Dashboard = () => {
             style={{ animation: 'fadeUp 0.55s cubic-bezier(0.16,1,0.3,1) 0.22s both' }}>
             <div className="flex items-center justify-between px-5 pt-5 pb-3">
               <h3 className="font-bold text-gray-800 text-sm">Balances</h3>
-              <button 
+              <button
                 onClick={() => navigate('/activity')}
                 className="text-xs text-violet-500 font-semibold hover:text-violet-400 transition-colors cursor-pointer"
               >
@@ -253,7 +253,7 @@ const Dashboard = () => {
 
           <div className="flex items-center justify-between px-5 pt-5 pb-3">
             <h3 className="font-bold text-gray-800 text-sm">Recent Activity</h3>
-            <button 
+            <button
               onClick={() => navigate('/activity')}
               className="text-xs text-violet-500 font-semibold hover:text-violet-400 transition-colors cursor-pointer"
             >

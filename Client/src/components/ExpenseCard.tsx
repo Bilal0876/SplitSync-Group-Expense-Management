@@ -318,13 +318,13 @@ const ExpenseCard = ({ expense, index, onEdit, onDelete }: ExpenseCardProps) => 
 
                     {/* Edit / Delete — only visible if user is the payer */}
                     {isOwner && (
-                         <div className="flex items-center gap-1 opacity-0 group-hover/card:opacity-100 transition-opacity duration-200">
+                         <div className="flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover/card:opacity-100 transition-opacity duration-200">
                               <button type="button" onClick={() => onEdit(expense)} title="Edit expense"
-                                   className="w-8 h-8 rounded-lg hover:bg-amber-50 flex items-center justify-center text-gray-300 hover:text-amber-500 transition-all cursor-pointer">
+                                   className="w-8 h-8 rounded-lg hover:bg-amber-50 flex items-center justify-center text-gray-400 group-hover/card:text-amber-500 md:text-gray-300 transition-all cursor-pointer">
                                    <Icon path={ICONS.pencil} className="size-3.5" />
                               </button>
                               <button type="button" onClick={() => onDelete(expense)} title="Delete expense"
-                                   className="w-8 h-8 rounded-lg hover:bg-red-50 flex items-center justify-center text-gray-300 hover:text-red-400 transition-all cursor-pointer">
+                                   className="w-8 h-8 rounded-lg hover:bg-red-50 flex items-center justify-center text-gray-400 group-hover/card:text-red-400 md:text-gray-300 transition-all cursor-pointer">
                                    <Icon path={ICONS.trash} className="size-3.5" />
                               </button>
                          </div>

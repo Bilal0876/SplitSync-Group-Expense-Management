@@ -18,6 +18,8 @@ export interface DashboardData {
         amount: number;
         dir: 'owed_to_me' | 'i_owe';
     }[];
+    monthlySpent: number;
+    totalSettled: number;
 }
 
 export const getDashboardData = async (): Promise<DashboardData> => {

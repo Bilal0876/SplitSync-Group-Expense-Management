@@ -84,7 +84,7 @@ const GroupsPage = () => {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-6">
             {[1, 2, 3, 4, 5, 6].map(i => (
               <div key={i} className="h-48 bg-gray-100 rounded-[2.5rem] animate-pulse" />
             ))}
@@ -104,7 +104,7 @@ const GroupsPage = () => {
           </div>
         ) : (
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-6">
             {filteredGroups.map((g, i) => (
 
               <div

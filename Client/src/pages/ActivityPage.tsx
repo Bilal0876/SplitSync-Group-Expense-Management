@@ -70,7 +70,7 @@ const ActivityPage = () => {
             <div className="w-20 h-20 mx-auto mb-6 rounded-3xl bg-gray-50 flex items-center justify-center text-gray-300">
               <Icon path={ICONS.empty} className="size-10" />
             </div>
-            <h3 className="text-xl font-extrabold text-gray-900 mb-2">No stories yet</h3>
+            <h3 className="text-xl font-extrabold text-gray-900 mb-2">No Activities yet</h3>
             <p className="text-gray-400 max-w-xs mx-auto">Activities will appear here once you start splitting expenses in your groups.</p>
           </div>
         ) : (

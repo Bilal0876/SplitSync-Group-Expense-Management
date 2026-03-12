@@ -23,8 +23,12 @@ export const getDashboardData = asyncHandler(async (req: AuthRequest, res: Respo
         });
     }
 
-    // 2. Fetch data for Net Balance calculation
-    const [totalPaid, totalOwed, totalSent, totalReceived] = await Promise.all([
+    const startOfMonth = new Date();
+    startOfMonth.setHours(0, 0, 0, 0);
+    startOfMonth.setDate(1);
+
+    // 2. Fetch data for Net Balance and Monthly Spending
+    const [totalPaid, totalOwed, totalSent, totalReceived, currentMonthPaid, currentMonthSettled] = await Promise.all([
         prisma.expenses.aggregate({
             _sum: { amount: true },
             where: { payer_id: userId }
@@ -40,6 +44,20 @@ export const getDashboardData = asyncHandler(async (req: AuthRequest, res: Respo
         prisma.settlements.aggregate({
             _sum: { amount: true },
             where: { receiver_id: userId }
+        }),
+        prisma.expenses.aggregate({
+            _sum: { amount: true },
+            where: { 
+                payer_id: userId,
+                created_at: { gte: startOfMonth }
+            }
+        }),
+        prisma.settlements.aggregate({
+            _sum: { amount: true },
+            where: { 
+                sender_id: userId,
+                settled_at: { gte: startOfMonth }
+            }
         })
     ]);
 
@@ -140,9 +158,13 @@ export const getDashboardData = asyncHandler(async (req: AuthRequest, res: Respo
         });
     }
 
+    const monthlySpentTotal = Number(currentMonthPaid._sum.amount || 0) + Number(currentMonthSettled._sum.amount || 0);
+
     res.status(200).json({
         groupsCount: groups.length,
         netBalance: Math.round(netBalance * 100) / 100,
+        monthlySpent: Math.round(monthlySpentTotal * 100) / 100,
+        totalSettled: Math.round(sent * 100) / 100,
         recentActivity,
         summarizedBalances: finalizedBalances.sort((a, b) => b.amount - a.amount)
     });

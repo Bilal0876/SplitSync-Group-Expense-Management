@@ -4,7 +4,6 @@ import { useAuth } from '../hooks/useAuth';
 import Logo from '../components/Logo';
 
 const AuthPage = () => {
-  //useState hook to manage the states
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -12,11 +11,9 @@ const AuthPage = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  //useAuth hook to get the authentication state
   const { login, register, token } = useAuth();
   const navigate = useNavigate();
 
-  // If authenticated, navigate to dashboard
   useEffect(() => {
     if (token) {
       navigate('/dashboard', { replace: true });
@@ -25,7 +22,6 @@ const AuthPage = () => {
 
   if (token) return null;
 
-  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');

@@ -444,18 +444,18 @@ const GroupDetail = () => {
                     />
                )}
 
-               <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+               <main className="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 py-5 sm:py-8 space-y-4 sm:space-y-6">
 
-                    {/* â”€â”€ Group Hero â”€â”€ */}
+                    {/* Group Hero */}
                     <div className="relative bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden"
                          style={{ animation: 'fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.05s both' }}>
-                         <div className="px-6 py-5 flex items-start justify-between gap-4 flex-wrap">
+                         <div className="px-4 sm:px-6 py-4 sm:py-5 flex flex-col sm:flex-row items-start sm:justify-between gap-4">
                               <div className="flex items-center gap-4">
-                                   <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-violet-500/30 flex-shrink-0">
-                                        <Icon path={ICONS.members} className="size-7 text-white" />
+                                   <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-violet-500/30 flex-shrink-0">
+                                        <Icon path={ICONS.members} className="size-6 md:size-7 text-white" />
                                    </div>
                                    <div>
-                                        <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight leading-tight">
+                                        <h1 className="text-xl md:text-2xl font-extrabold text-gray-900 tracking-tight leading-tight">
                                              {group?.name}
                                         </h1>
                                         <div className="flex items-center gap-1.5 mt-1.5">
@@ -468,7 +468,7 @@ const GroupDetail = () => {
                                         </div>
                                    </div>
                               </div>
-                              <div className="flex items-center gap-5 flex-wrap">
+                              <div className="flex items-center gap-4 flex-wrap sm:flex-nowrap">
                                    {expenses.length > 0 && (
                                         <div className="flex flex-col items-end">
                                              <span className="text-xs text-gray-400 font-medium">Total spent</span>
@@ -498,12 +498,12 @@ const GroupDetail = () => {
                          </div>
                     </div>
 
-                    {/* â”€â”€ Two-col layout â”€â”€ */}
-                    <div className="grid lg:grid-cols-5 gap-6">
-                         {/* â”€â”€ Right: Expenses + Balances â”€â”€ */}
+
+                    <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-5 gap-6">
+                         {/* Right: Expenses + Balances */}
                          <div className="lg:col-span-3 flex flex-col gap-4">
 
-                              {/* â”€â”€ Expenses Card â”€â”€ */}
+                              {/* Expenses Card */}
                               <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden"
                                    style={{ animation: 'fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.18s both' }}>
 
@@ -703,15 +703,15 @@ const GroupDetail = () => {
                                                             <p className="text-sm font-semibold text-gray-800 truncate">{member.username}</p>
                                                             <p className="text-xs text-gray-400 truncate">{member.email}</p>
                                                        </div>
-                                                        {group?.created_by === (JSON.parse(localStorage.getItem('user') || '{}').id) && (
-                                                             <button
-                                                                  type="button"
-                                                                  onClick={() => handleRemoveMember(member.id)}
-                                                                  title="Remove member"
-                                                                  className="opacity-0 group-hover:opacity-100 w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center text-gray-300 hover:text-red-400 transition-all cursor-pointer">
-                                                                  <Icon path={ICONS.trash} className="size-3.5" />
-                                                             </button>
-                                                        )}
+                                                       {group?.created_by === (JSON.parse(localStorage.getItem('user') || '{}').id) && (
+                                                            <button
+                                                                 type="button"
+                                                                 onClick={() => handleRemoveMember(member.id)}
+                                                                 title="Remove member"
+                                                                 className="opacity-100 md:opacity-0 md:group-hover:opacity-100 w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center text-gray-400 group-hover:text-red-400 md:text-gray-300 transition-all cursor-pointer">
+                                                                 <Icon path={ICONS.trash} className="size-3.5" />
+                                                            </button>
+                                                       )}
                                                   </li>
                                              ))}
                                         </ul>
